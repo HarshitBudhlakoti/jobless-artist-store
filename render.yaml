@@ -7,6 +7,7 @@ services:
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
+    nodeVersion: 20.11.0
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,7 +16,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRE
-        sync: false
+        value: 7d
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -27,13 +28,13 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_CALLBACK_URL
-        sync: false
+        value: https://jobless-artist-api.onrender.com/api/auth/google/callback
       - key: CLIENT_URL
-        sync: false
+        value: https://jobless-artist-store.netlify.app
       - key: EMAIL_HOST
-        sync: false
+        value: smtp.gmail.com
       - key: EMAIL_PORT
-        sync: false
+        value: "587"
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
