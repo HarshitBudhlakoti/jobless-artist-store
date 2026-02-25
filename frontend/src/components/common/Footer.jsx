@@ -22,10 +22,10 @@ const quickLinks = [
 ];
 
 const customerCare = [
-  { to: '/shipping', label: 'Shipping Info' },
-  { to: '/returns', label: 'Returns & Exchanges' },
-  { to: '/faq', label: 'FAQ' },
-  { to: '/track-order', label: 'Track Order' },
+  { to: '/shipping-policy', label: 'Shipping Policy' },
+  { to: '/refund-policy', label: 'Refunds & Cancellation' },
+  { to: '/terms-and-conditions', label: 'Terms & Conditions' },
+  { to: '/contact', label: 'Contact Us' },
 ];
 
 const socialLinks = [
@@ -175,7 +175,7 @@ export default function Footer() {
               <span className="rounded border border-cream/20 px-2 py-1">Visa</span>
               <span className="rounded border border-cream/20 px-2 py-1">Mastercard</span>
               <span className="rounded border border-cream/20 px-2 py-1">UPI</span>
-              <span className="rounded border border-cream/20 px-2 py-1">Razorpay</span>
+              <span className="rounded border border-cream/20 px-2 py-1">Cashfree</span>
             </div>
           </div>
         </div>

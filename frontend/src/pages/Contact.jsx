@@ -59,19 +59,19 @@ const contactDetails = [
   {
     icon: FiMail,
     label: 'Email',
-    value: 'hello@joblessartist.com',
-    href: 'mailto:hello@joblessartist.com',
+    value: 'joblessartist99@gmail.com',
+    href: 'mailto:joblessartist99@gmail.com',
   },
   {
     icon: FiPhone,
     label: 'Phone',
-    value: '+91 XXXXX XXXXX',
-    href: 'tel:+91XXXXXXXXXX',
+    value: '+91 82185 85651',
+    href: 'tel:+918218585651',
   },
   {
     icon: FiMapPin,
     label: 'Studio',
-    value: 'Creative Quarter, Jaipur, Rajasthan, India',
+    value: 'Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139',
     href: null,
   },
   {
@@ -98,17 +98,17 @@ const faqData = [
   {
     question: 'Do you ship internationally?',
     answer:
-      'Yes! We ship worldwide. Domestic orders within India typically arrive in 5-7 business days. International shipping takes 10-15 business days depending on the destination. All shipments are fully insured and carefully packaged to ensure your artwork arrives in perfect condition.',
+      'Yes! We ship across India and internationally. Domestic orders within India typically arrive in 5-7 business days. International shipping takes 15-21 business days depending on the destination. Shipping is free on orders above \u20B93,000. A flat \u20B975 shipping charge applies to orders below \u20B93,000. All shipments are carefully packaged to ensure your artwork arrives in perfect condition.',
   },
   {
     question: 'What payment methods do you accept?',
     answer:
-      'We accept UPI, all major credit and debit cards, net banking, and wallet payments through our secure Razorpay gateway. For custom orders, we offer a convenient 50% advance and 50% on completion payment plan.',
+      'We accept UPI, all major credit and debit cards, net banking, and wallet payments through our secure Cashfree payment gateway. For custom orders, we offer a convenient 50% advance and 50% on completion payment plan.',
   },
   {
     question: 'Can I return a painting?',
     answer:
-      'For ready-made artworks, we offer a 7-day return policy from the date of delivery if the painting arrives damaged or significantly differs from the listing. Custom commissions are non-returnable since they are made specifically for you, but we work closely with you during the process to ensure complete satisfaction.',
+      'We offer a 7-day return policy from the date of delivery if the item arrives with physical damage. This applies to all orders including custom commissions. Once the returned product is received, we will discuss the refund or replacement with you directly. Orders can be cancelled anytime before dispatch.',
   },
   {
     question: 'How do I care for my painting?',
@@ -717,7 +717,7 @@ const Contact = () => {
                       className="text-xs mt-0.5"
                       style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}
                     >
-                      Creative Quarter, Jaipur
+                      Haldwani, Nainital
                     </p>
                   </div>
                 </div>

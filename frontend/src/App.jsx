@@ -24,6 +24,9 @@ const Contact = lazy(() => import('./pages/Contact'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const GoogleCallback = lazy(() => import('./pages/GoogleCallback'));
+const ShippingPolicy = lazy(() => import('./pages/ShippingPolicy'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -116,6 +119,9 @@ function AppRoutes() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/shipping-policy" element={<ShippingPolicy />} />
+                <Route path="/refund-policy" element={<RefundPolicy />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
