@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiLock, FiArrowLeft, FiCreditCard, FiShield } from 'react-icons/fi';
+import { FiCheck, FiLock, FiArrowLeft, FiCreditCard, FiShield, FiTruck } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import AnimatedPage from '../components/common/AnimatedPage';
 import useCart from '../hooks/useCart';
 import useAuth from '../hooks/useAuth';
 import api from '../api/axios';
 import { formatPrice } from '../utils/helpers';
-
-const ESTIMATED_SHIPPING = 199;
+import { getEstimatedShipping, INDIA_POST_FREE_THRESHOLD } from '../utils/shippingConfig';
 
 const inputClasses =
   'w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-[#2C2C2C] ' +
@@ -41,6 +40,12 @@ const Checkout = () => {
   const [orderId, setOrderId] = useState('');
   const [submitError, setSubmitError] = useState('');
 
+  // Shipping state
+  const [shippingMethod, setShippingMethod] = useState('india-post');
+  const [shippingRates, setShippingRates] = useState(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const debounceRef = useRef(null);
+
   // Pre-fill form from user data
   useEffect(() => {
     if (user) {
@@ -67,7 +72,46 @@ const Checkout = () => {
     }
   }, [cartItems, success, authLoading, navigate]);
 
-  const shipping = cartTotal > 5000 ? 0 : ESTIMATED_SHIPPING;
+  // Fetch shipping rates when pincode changes
+  const fetchShippingRates = useCallback(
+    async (pin) => {
+      if (!/^\d{6}$/.test(pin)) {
+        setShippingRates(null);
+        return;
+      }
+      setShippingLoading(true);
+      try {
+        const { data } = await api.post('/shipping/calculate', {
+          destinationPin: pin,
+          cartSubtotal: cartTotal,
+        });
+        setShippingRates(data.data);
+      } catch {
+        setShippingRates(null);
+      } finally {
+        setShippingLoading(false);
+      }
+    },
+    [cartTotal]
+  );
+
+  // Debounced pincode watcher
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (/^\d{6}$/.test(form.zip)) {
+        fetchShippingRates(form.zip);
+      }
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [form.zip, fetchShippingRates]);
+
+  // Compute shipping cost from selected method
+  const selectedRate = shippingRates?.[shippingMethod];
+  const shipping =
+    selectedRate?.available && selectedRate?.cost != null
+      ? selectedRate.cost
+      : getEstimatedShipping(cartTotal);
   const total = cartTotal + shipping;
 
   const handleChange = (field) => (e) => {
@@ -138,6 +182,8 @@ const Checkout = () => {
           zip: form.zip,
           country: form.country,
         },
+        shippingMethod,
+        shippingCost: shipping,
         subtotal: cartTotal,
         shipping,
         total,
@@ -547,6 +593,109 @@ const Checkout = () => {
                   </div>
                 </div>
 
+                {/* Shipping Method Selector */}
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <h2
+                    className="text-xl font-bold mb-4"
+                    style={{
+                      fontFamily: "'Playfair Display', serif",
+                      color: '#2C2C2C',
+                    }}
+                  >
+                    <FiTruck className="inline-block w-5 h-5 mr-2 -mt-0.5" style={{ color: '#C75B39' }} />
+                    Shipping Method
+                  </h2>
+
+                  {shippingLoading ? (
+                    <div className="flex items-center gap-2 py-4">
+                      <svg className="animate-spin w-4 h-4 text-[#C75B39]" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="text-sm text-gray-400" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                        Fetching shipping rates...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* India Post */}
+                      <label
+                        className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                          shippingMethod === 'india-post'
+                            ? 'border-[#C75B39] bg-[#C75B39]/5'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shippingMethod"
+                          value="india-post"
+                          checked={shippingMethod === 'india-post'}
+                          onChange={() => setShippingMethod('india-post')}
+                          className="accent-[#C75B39]"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#2C2C2C]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                            India Post
+                          </p>
+                          <p className="text-xs text-gray-400" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                            {shippingRates?.['india-post']?.estimatedDays || '5-7 business days'}
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold" style={{ fontFamily: "'DM Sans', sans-serif", color: (shippingRates?.['india-post']?.cost ?? getEstimatedShipping(cartTotal)) === 0 ? '#16a34a' : '#2C2C2C' }}>
+                          {(shippingRates?.['india-post']?.cost ?? getEstimatedShipping(cartTotal)) === 0
+                            ? 'Free'
+                            : formatPrice(shippingRates?.['india-post']?.cost ?? getEstimatedShipping(cartTotal))}
+                        </p>
+                      </label>
+
+                      {/* Delhivery */}
+                      {(() => {
+                        const delhiveryRate = shippingRates?.delhivery;
+                        const isAvailable = delhiveryRate?.available && !delhiveryRate?.comingSoon;
+                        return (
+                          <label
+                            className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                              !isAvailable
+                                ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+                                : shippingMethod === 'delhivery'
+                                ? 'border-[#C75B39] bg-[#C75B39]/5 cursor-pointer'
+                                : 'border-gray-200 hover:border-gray-300 cursor-pointer'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value="delhivery"
+                              checked={shippingMethod === 'delhivery'}
+                              onChange={() => isAvailable && setShippingMethod('delhivery')}
+                              disabled={!isAvailable}
+                              className="accent-[#C75B39]"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-[#2C2C2C]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                                Delhivery
+                              </p>
+                              <p className="text-xs text-gray-400" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                                {isAvailable
+                                  ? delhiveryRate.estimatedDays || '2-4 business days'
+                                  : '2-4 business days'}
+                              </p>
+                            </div>
+                            <p className="text-sm font-semibold" style={{ fontFamily: "'DM Sans', sans-serif", color: isAvailable ? '#2C2C2C' : '#9CA3AF' }}>
+                              {isAvailable
+                                ? delhiveryRate.cost === 0
+                                  ? 'Free'
+                                  : formatPrice(delhiveryRate.cost)
+                                : 'Coming Soon'}
+                            </p>
+                          </label>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
                 {/* Payment Section */}
                 <div className="mt-8 pt-6 border-t border-gray-100">
                   <h2
@@ -793,7 +942,7 @@ const Checkout = () => {
                       className="text-xs text-gray-500"
                       style={{ fontFamily: "'DM Sans', sans-serif" }}
                     >
-                      Add {formatPrice(5000 - cartTotal)} more for free shipping!
+                      Add {formatPrice(INDIA_POST_FREE_THRESHOLD - cartTotal)} more for free shipping (India Post)!
                     </p>
                     <div className="mt-2 w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <motion.div
@@ -801,7 +950,7 @@ const Checkout = () => {
                         style={{ background: '#D4A857' }}
                         initial={{ width: '0%' }}
                         animate={{
-                          width: `${Math.min((cartTotal / 5000) * 100, 100)}%`,
+                          width: `${Math.min((cartTotal / INDIA_POST_FREE_THRESHOLD) * 100, 100)}%`,
                         }}
                         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                       />

@@ -13,6 +13,7 @@ import {
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import { staggerContainer, staggerItem } from '../../utils/animations';
+import { useSiteSettings } from '../../hooks/useSiteContent';
 
 const quickLinks = [
   { to: '/shop', label: 'Shop All' },
@@ -25,10 +26,18 @@ const customerCare = [
   { to: '/shipping-policy', label: 'Shipping Policy' },
   { to: '/refund-policy', label: 'Refunds & Cancellation' },
   { to: '/terms-and-conditions', label: 'Terms & Conditions' },
+  { to: '/privacy-policy', label: 'Privacy Policy' },
   { to: '/contact', label: 'Contact Us' },
 ];
 
-const socialLinks = [
+const SOCIAL_ICON_MAP = {
+  instagram: FaInstagram,
+  pinterest: FaPinterestP,
+  facebook: FaFacebookF,
+  twitter: FaTwitter,
+};
+
+const DEFAULT_SOCIAL = [
   { icon: FaInstagram, href: '#', label: 'Instagram' },
   { icon: FaPinterestP, href: '#', label: 'Pinterest' },
   { icon: FaFacebookF, href: '#', label: 'Facebook' },
@@ -36,7 +45,28 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const { data: settings } = useSiteSettings();
   const [email, setEmail] = useState('');
+
+  // Build social links from settings
+  const socialLinks = settings?.socialLinks
+    ? Object.entries(settings.socialLinks)
+        .filter(([, url]) => url)
+        .map(([key, url]) => ({
+          icon: SOCIAL_ICON_MAP[key] || FaInstagram,
+          href: url,
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+        }))
+    : DEFAULT_SOCIAL;
+  if (socialLinks.length === 0) {
+    // show defaults if no links configured
+    socialLinks.push(...DEFAULT_SOCIAL);
+  }
+
+  const brandDesc = settings?.footer?.brandDescription ||
+    'Handcrafted art that tells a story. Each piece is created with passion, precision, and a deep love for artistic expression. Bringing unique, soulful art into your world.';
+  const copyrightText = settings?.footer?.copyrightText || 'Jobless Artist. All rights reserved.';
+  const paymentMethods = settings?.footer?.paymentMethods || ['Visa', 'Mastercard', 'UPI', 'Cashfree'];
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -71,9 +101,7 @@ export default function Footer() {
               </h3>
             </Link>
             <p className="mt-4 font-body text-sm leading-relaxed text-cream/70">
-              Handcrafted art that tells a story. Each piece is created with
-              passion, precision, and a deep love for artistic expression.
-              Bringing unique, soulful art into your world.
+              {brandDesc}
             </p>
             <div className="mt-6 flex gap-3">
               {socialLinks.map((social) => (
@@ -167,15 +195,13 @@ export default function Footer() {
       <div className="border-t border-cream/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
           <p className="font-body text-xs text-cream/50">
-            &copy; {new Date().getFullYear()} Jobless Artist. All rights reserved.
+            &copy; {new Date().getFullYear()} {copyrightText}
           </p>
           <div className="flex items-center gap-4">
-            {/* Payment method icons (simplified text placeholders) */}
             <div className="flex items-center gap-3 font-body text-xs text-cream/40">
-              <span className="rounded border border-cream/20 px-2 py-1">Visa</span>
-              <span className="rounded border border-cream/20 px-2 py-1">Mastercard</span>
-              <span className="rounded border border-cream/20 px-2 py-1">UPI</span>
-              <span className="rounded border border-cream/20 px-2 py-1">Cashfree</span>
+              {paymentMethods.map((method) => (
+                <span key={method} className="rounded border border-cream/20 px-2 py-1">{method}</span>
+              ))}
             </div>
           </div>
         </div>

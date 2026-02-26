@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FiArrowRight } from 'react-icons/fi';
+import { usePageContent } from '../../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -138,8 +139,18 @@ const BrushTexture = () => (
   </svg>
 );
 
+const DEFAULT_CTA = {
+  heading: 'Your Vision,',
+  headingAccent: 'Our Canvas',
+  paragraph1: 'Every great piece of art begins with a story. Share yours with us, and we will transform it into a one-of-a-kind masterpiece that captures the emotions, memories, and moments that matter most to you.',
+  paragraph2: 'From intimate portraits to sprawling landscapes, our artist works closely with you at every step -- from concept sketches to the final brushstroke.',
+  features: ['Personalized Consultation', 'Progress Updates', 'Satisfaction Guaranteed'],
+  ctaText: 'Start Your Commission',
+};
+
 /* ─── Main component ─── */
 const CustomOrderCTA = () => {
+  const { content } = usePageContent('customOrderCTA', DEFAULT_CTA);
   const sectionRef = useRef(null);
   const leftRef = useRef(null);
   const rightRef = useRef(null);
@@ -169,7 +180,7 @@ const CustomOrderCTA = () => {
     return () => ctx.revert();
   }, []);
 
-  const features = ['Personalized Consultation', 'Progress Updates', 'Satisfaction Guaranteed'];
+  const features = content?.features || DEFAULT_CTA.features;
 
   return (
     <section
@@ -201,20 +212,16 @@ const CustomOrderCTA = () => {
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight font-display text-primary">
-              Your Vision,{' '}
-              <span className="text-accent">Our Canvas</span>
+              {content?.heading || DEFAULT_CTA.heading}{' '}
+              <span className="text-accent">{content?.headingAccent || DEFAULT_CTA.headingAccent}</span>
             </h2>
 
             <p className="text-lg mb-4 leading-relaxed font-body text-text-secondary">
-              Every great piece of art begins with a story. Share yours with us,
-              and we will transform it into a one-of-a-kind masterpiece that
-              captures the emotions, memories, and moments that matter most to you.
+              {content?.paragraph1 || DEFAULT_CTA.paragraph1}
             </p>
 
             <p className="text-base mb-8 leading-relaxed font-body" style={{ color: '#8A8A8A' }}>
-              From intimate portraits to sprawling landscapes, our artist works
-              closely with you at every step -- from concept sketches to the final
-              brushstroke.
+              {content?.paragraph2 || DEFAULT_CTA.paragraph2}
             </p>
 
             {/* Features */}
@@ -238,7 +245,7 @@ const CustomOrderCTA = () => {
                          hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 group"
               style={{ boxShadow: '0 4px 14px rgba(199,91,57,0.3)' }}
             >
-              Start Your Commission
+              {content?.ctaText || DEFAULT_CTA.ctaText}
               <FiArrowRight size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>

@@ -17,6 +17,7 @@ import {
 import { FaPinterestP } from 'react-icons/fa';
 import api from '../api/axios';
 import AnimatedPage from '../components/common/AnimatedPage';
+import { useSiteSettings, usePageContent } from '../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -55,7 +56,7 @@ const SUBJECT_OPTIONS = [
   'Other',
 ];
 
-const contactDetails = [
+const DEFAULT_CONTACT_DETAILS = [
   {
     icon: FiMail,
     label: 'Email',
@@ -89,7 +90,7 @@ const socialLinks = [
   { icon: FiYoutube, label: 'YouTube', href: '#' },
 ];
 
-const faqData = [
+const DEFAULT_FAQ = [
   {
     question: 'How long does a custom painting take?',
     answer:
@@ -205,6 +206,22 @@ const FormField = ({ icon: Icon, error, children }) => (
 /*  CONTACT PAGE                                                      */
 /* ================================================================== */
 const Contact = () => {
+  const { data: settings } = useSiteSettings();
+  const { content: faqContent } = usePageContent('contactFAQ', { items: DEFAULT_FAQ });
+
+  // Build contact details from site settings
+  const contactInfo = settings?.contact;
+  const contactDetails = contactInfo
+    ? [
+        { icon: FiMail, label: 'Email', value: contactInfo.email, href: contactInfo.email ? `mailto:${contactInfo.email}` : null },
+        { icon: FiPhone, label: 'Phone', value: contactInfo.phone, href: contactInfo.phone ? `tel:${contactInfo.phone.replace(/\s/g, '')}` : null },
+        { icon: FiMapPin, label: 'Studio', value: contactInfo.address, href: null },
+        { icon: FiClock, label: 'Working Hours', value: contactInfo.workingHours, href: null },
+      ]
+    : DEFAULT_CONTACT_DETAILS;
+
+  const faqData = faqContent?.items || DEFAULT_FAQ;
+
   const pageRef = useRef(null);
   const formRef = useRef(null);
   const infoRef = useRef(null);

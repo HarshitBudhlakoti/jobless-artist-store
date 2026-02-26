@@ -6,6 +6,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const passport = require('./config/passport');
 const errorHandler = require('./middleware/errorHandler');
@@ -34,8 +36,21 @@ app.use(
 );
 
 // Body parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Sanitize MongoDB queries (prevent NoSQL injection)
+app.use(mongoSanitize());
+
+// Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' },
+});
+app.use('/api', apiLimiter);
 
 // Initialize passport
 app.use(passport.initialize());
@@ -58,6 +73,10 @@ app.use('/api/custom-orders', require('./routes/customOrderRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
+app.use('/api/shipping', require('./routes/shippingRoutes'));
+app.use('/api/site-settings', require('./routes/siteSettingsRoutes'));
+app.use('/api/page-content', require('./routes/pageContentRoutes'));
+app.use('/api/testimonials', require('./routes/testimonialRoutes'));
 
 // 404 handler
 app.use((req, res) => {

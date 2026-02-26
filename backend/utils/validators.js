@@ -104,6 +104,14 @@ const orderValidator = [
     .trim()
     .notEmpty()
     .withMessage('Country is required'),
+  body('shippingMethod')
+    .optional()
+    .isIn(['india-post', 'delhivery'])
+    .withMessage('Invalid shipping method'),
+  body('shippingCost')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Shipping cost must be a non-negative number'),
 ];
 
 module.exports = {

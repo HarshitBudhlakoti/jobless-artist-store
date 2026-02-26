@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { usePageContent } from '../../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,9 +57,18 @@ const BrushStroke3 = () => (
   </svg>
 );
 
-const HEADING_TEXT = 'Art That Speaks Your Story';
+const DEFAULT_HERO = {
+  heading: 'Art That Speaks Your Story',
+  subtitle: 'Handcrafted paintings and bespoke art pieces that transform your emotions into timeless visual stories.',
+  ctaButtons: [
+    { label: 'Shop Gallery', link: '/shop' },
+    { label: 'Order Custom Art', link: '/custom-order' },
+  ],
+};
 
 const Hero = () => {
+  const { content } = usePageContent('hero', DEFAULT_HERO);
+  const HEADING_TEXT = content?.heading || DEFAULT_HERO.heading;
   const sectionRef = useRef(null);
   const headingRef = useRef(null);
   const subtitleRef = useRef(null);
@@ -210,8 +220,7 @@ const Hero = () => {
           className="text-lg sm:text-xl md:text-2xl max-w-2xl mx-auto mb-10 leading-relaxed font-body text-text-secondary"
           style={{ opacity: 0 }}
         >
-          Handcrafted paintings and bespoke art pieces that transform your
-          emotions into timeless visual stories.
+          {content?.subtitle || DEFAULT_HERO.subtitle}
         </p>
 
         {/* CTA buttons */}
@@ -220,26 +229,22 @@ const Hero = () => {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
           style={{ opacity: 0 }}
         >
-          <Link
-            to="/shop"
-            className="inline-flex items-center px-8 py-4 text-lg font-semibold text-white rounded-xl
-                       font-body bg-accent transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-            style={{ boxShadow: '0 4px 14px rgba(199,91,57,0.3)' }}
-          >
-            Shop Gallery
-          </Link>
-
-          <Link
-            to="/custom-order"
-            className={`inline-flex items-center px-8 py-4 text-lg font-semibold rounded-xl
-                        border-2 border-primary font-body transition-all duration-300
-                        hover:shadow-md hover:-translate-y-0.5 active:translate-y-0
-                        ${hoveredBtn === 'custom' ? 'bg-primary text-cream' : 'bg-transparent text-primary'}`}
-            onMouseEnter={() => setHoveredBtn('custom')}
-            onMouseLeave={() => setHoveredBtn(null)}
-          >
-            Order Custom Art
-          </Link>
+          {(content?.ctaButtons || DEFAULT_HERO.ctaButtons).map((btn, idx) => (
+            <Link
+              key={idx}
+              to={btn.link}
+              className={
+                idx === 0
+                  ? 'inline-flex items-center px-8 py-4 text-lg font-semibold text-white rounded-xl font-body bg-accent transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
+                  : `inline-flex items-center px-8 py-4 text-lg font-semibold rounded-xl border-2 border-primary font-body transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 ${hoveredBtn === idx ? 'bg-primary text-cream' : 'bg-transparent text-primary'}`
+              }
+              style={idx === 0 ? { boxShadow: '0 4px 14px rgba(199,91,57,0.3)' } : undefined}
+              onMouseEnter={idx > 0 ? () => setHoveredBtn(idx) : undefined}
+              onMouseLeave={idx > 0 ? () => setHoveredBtn(null) : undefined}
+            >
+              {btn.label}
+            </Link>
+          ))}
         </div>
 
       </div>

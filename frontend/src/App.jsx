@@ -27,6 +27,7 @@ const GoogleCallback = lazy(() => import('./pages/GoogleCallback'));
 const ShippingPolicy = lazy(() => import('./pages/ShippingPolicy'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -50,6 +51,15 @@ const AdminCrafts = lazy(() =>
 );
 const AdminUsers = lazy(() =>
   import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminUserManager }))
+);
+const AdminSiteSettings = lazy(() =>
+  import('./pages/admin/AdminDashboard').then((m) => ({ default: m.SiteSettingsManager }))
+);
+const AdminPageContent = lazy(() =>
+  import('./pages/admin/AdminDashboard').then((m) => ({ default: m.PageContentManager }))
+);
+const AdminTestimonials = lazy(() =>
+  import('./pages/admin/AdminDashboard').then((m) => ({ default: m.TestimonialsManager }))
 );
 
 /** Route guard: requires the user to be authenticated. */
@@ -105,6 +115,9 @@ function AppRoutes() {
                 <Route path="custom-orders" element={<AdminCustomOrders />} />
                 <Route path="crafts" element={<AdminCrafts />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="site-settings" element={<AdminSiteSettings />} />
+                <Route path="content" element={<AdminPageContent />} />
+                <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="*" element={<Navigate to="/control-panel" replace />} />
               </Route>
             </Routes>
@@ -122,6 +135,7 @@ function AppRoutes() {
                 <Route path="/shipping-policy" element={<ShippingPolicy />} />
                 <Route path="/refund-policy" element={<RefundPolicy />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

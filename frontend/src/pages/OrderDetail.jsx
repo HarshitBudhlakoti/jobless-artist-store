@@ -239,20 +239,38 @@ export default function OrderDetail() {
               })}
             </div>
 
-            {/* Total */}
-            <div className="mt-5 pt-4 border-t border-gray-100 flex justify-between items-center">
-              <span
-                className="text-sm font-medium"
-                style={{ fontFamily: "'DM Sans', sans-serif", color: '#6B6B6B' }}
-              >
-                Total Amount
-              </span>
-              <span
-                className="text-lg font-bold"
-                style={{ fontFamily: "'DM Sans', sans-serif", color: '#2C2C2C' }}
-              >
-                {formatPrice(order.totalAmount || order.total)}
-              </span>
+            {/* Shipping + Total */}
+            <div className="mt-5 pt-4 border-t border-gray-100 space-y-2">
+              {order.shippingMethod && (
+                <div className="flex justify-between items-center">
+                  <span
+                    className="text-sm font-medium"
+                    style={{ fontFamily: "'DM Sans', sans-serif", color: '#6B6B6B' }}
+                  >
+                    Shipping ({order.shippingMethod === 'delhivery' ? 'Delhivery' : 'India Post'})
+                  </span>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ fontFamily: "'DM Sans', sans-serif", color: order.shippingCost === 0 ? '#16a34a' : '#2C2C2C' }}
+                  >
+                    {order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span
+                  className="text-sm font-medium"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: '#6B6B6B' }}
+                >
+                  Total Amount
+                </span>
+                <span
+                  className="text-lg font-bold"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: '#2C2C2C' }}
+                >
+                  {formatPrice(order.totalAmount || order.total)}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -280,7 +298,7 @@ export default function OrderDetail() {
               </div>
             )}
 
-            {(order.trackingNumber || order.tracking) && (
+            {(order.trackingNumber || order.courierTrackingId || order.tracking) && (
               <div className="bg-white rounded-xl border border-gray-100 p-5">
                 <p
                   className="text-sm font-semibold flex items-center gap-2 mb-3"
@@ -288,9 +306,20 @@ export default function OrderDetail() {
                 >
                   <FiTruck size={14} style={{ color: '#C75B39' }} /> Tracking
                 </p>
-                <p className="text-sm font-mono" style={{ color: '#C75B39' }}>
-                  {order.trackingNumber || order.tracking}
+                <p className="text-sm font-mono mb-2" style={{ color: '#C75B39' }}>
+                  {order.courierTrackingId || order.trackingNumber || order.tracking}
                 </p>
+                {order.shippingMethod === 'delhivery' && order.courierTrackingId && (
+                  <a
+                    href={`https://www.delhivery.com/track/package/${order.courierTrackingId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:shadow-md"
+                    style={{ background: '#C75B39', fontFamily: "'DM Sans', sans-serif" }}
+                  >
+                    <FiTruck size={12} /> Track Live on Delhivery
+                  </a>
+                )}
               </div>
             )}
 

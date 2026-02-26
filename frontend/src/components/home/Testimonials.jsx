@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useTestimonials } from '../../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
-
-/* Testimonials will be loaded from API when available */
-const TESTIMONIALS = [];
 
 /* ─── Star rating ─── */
 const StarRating = ({ rating }) => (
@@ -59,19 +57,38 @@ const slideVariants = {
 
 /* ─── Main component ─── */
 const Testimonials = () => {
+  const { testimonials: apiTestimonials } = useTestimonials();
+
+  // Map API data to display format
+  const TESTIMONIALS = apiTestimonials.map((t) => ({
+    id: t._id,
+    name: t.name,
+    location: t.location || '',
+    quote: t.quote,
+    rating: t.rating,
+    initials: t.name
+      .split(' ')
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2),
+    avatarGradient: 'linear-gradient(135deg, #C75B39, #D4A857)',
+  }));
+
   const sectionRef = useRef(null);
   const [[current, direction], setCurrent] = useState([0, 0]);
   const timerRef = useRef(null);
 
   const paginate = useCallback((newDir) => {
     setCurrent(([prev]) => {
+      const len = TESTIMONIALS.length || 1;
       const next =
         newDir === 1
-          ? (prev + 1) % TESTIMONIALS.length
-          : (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length;
+          ? (prev + 1) % len
+          : (prev - 1 + len) % len;
       return [next, newDir];
     });
-  }, []);
+  }, [TESTIMONIALS.length]);
 
   const goTo = useCallback((idx) => {
     setCurrent(([prev]) => [idx, idx > prev ? 1 : -1]);

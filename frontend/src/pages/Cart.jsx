@@ -5,13 +5,12 @@ import AnimatedPage from '../components/common/AnimatedPage';
 import CartItem from '../components/cart/CartItem';
 import useCart from '../hooks/useCart';
 import { formatPrice } from '../utils/helpers';
-
-const ESTIMATED_SHIPPING = 199;
+import { getEstimatedShipping, INDIA_POST_FREE_THRESHOLD } from '../utils/shippingConfig';
 
 const Cart = () => {
   const { cartItems, cartTotal, cartCount, clearCart } = useCart();
 
-  const shipping = cartTotal > 5000 ? 0 : ESTIMATED_SHIPPING;
+  const shipping = getEstimatedShipping(cartTotal);
   const total = cartTotal + shipping;
 
   return (
@@ -197,9 +196,15 @@ const Cart = () => {
                         className="text-xs text-green-600"
                         style={{ fontFamily: "'DM Sans', sans-serif" }}
                       >
-                        Free shipping on orders above {formatPrice(5000)}
+                        Free shipping on orders above {formatPrice(INDIA_POST_FREE_THRESHOLD)}
                       </p>
                     )}
+                    <p
+                      className="text-xs text-gray-400 mt-1"
+                      style={{ fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      Final shipping based on courier choice at checkout
+                    </p>
                   </div>
 
                   <div className="border-t border-gray-100 mt-4 pt-4">

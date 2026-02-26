@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { usePageContent } from '../../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Category data ─── */
-const CATEGORIES = [
+/* ─── Default category data ─── */
+const DEFAULT_CATEGORIES = [
   {
     name: 'Paintings',
     slug: 'paintings',
@@ -88,8 +89,25 @@ const cardVariants = {
   },
 };
 
+// Map slug -> icon from defaults (icons stay in code)
+const ICON_MAP = {};
+DEFAULT_CATEGORIES.forEach((cat) => { ICON_MAP[cat.slug] = cat.icon; });
+
+const DEFAULT_GRID = {
+  sectionTitle: 'Explore Categories',
+  categories: DEFAULT_CATEGORIES.map(({ name, slug, description, gradient }) => ({ name, slug, description, gradient })),
+};
+
 const CategoriesGrid = () => {
+  const { content } = usePageContent('categoriesGrid', DEFAULT_GRID);
   const sectionRef = useRef(null);
+
+  // Merge CMS data with hardcoded icons
+  const CATEGORIES = (content?.categories || DEFAULT_GRID.categories).map((cat) => ({
+    ...cat,
+    icon: ICON_MAP[cat.slug] || DEFAULT_CATEGORIES[0]?.icon,
+    gradient: cat.gradient || 'linear-gradient(135deg, #C75B39 0%, #E8A87C 100%)',
+  }));
 
   /* GSAP: section title animation */
   useEffect(() => {
@@ -123,7 +141,7 @@ const CategoriesGrid = () => {
         {/* Title */}
         <div className="cat-title flex flex-col items-center mb-14">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4 font-display text-primary">
-            Explore Categories
+            {content?.sectionTitle || DEFAULT_GRID.sectionTitle}
           </h2>
           <div className="flex items-center gap-3">
             <span className="block w-12 h-0.5 bg-accent" />

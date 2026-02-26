@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import AnimatedPage from '../components/common/AnimatedPage';
+import { usePageContent } from '../hooks/useSiteContent';
 
-const lastUpdated = '25 February 2026';
+const DEFAULT_LAST_UPDATED = '25 February 2026';
 
-const sections = [
+const DEFAULT_SECTIONS = [
   {
     title: '1. Introduction',
     content:
@@ -58,7 +59,7 @@ const sections = [
   {
     title: '11. Privacy',
     content:
-      'We respect your privacy and handle your personal information with care. Any personal data collected through the website (name, email, address, phone number, payment details) is used solely for processing orders, communicating with you, and improving our services. We do not sell or share your personal information with third parties except as necessary for order fulfilment (e.g., shipping partners, payment gateway).',
+      'We respect your privacy and handle your personal information with care. Any personal data collected through the website (name, email, address, phone number, payment details) is used solely for processing orders, communicating with you, and improving our services. We do not sell or share your personal information with third parties except as necessary for order fulfilment (e.g., shipping partners, payment gateway). For full details, please refer to our Privacy Policy page.',
   },
   {
     title: '12. Governing Law',
@@ -77,7 +78,17 @@ const sections = [
   },
 ];
 
+const DEFAULT_TC = {
+  pageTitle: 'Terms & Conditions',
+  lastUpdated: DEFAULT_LAST_UPDATED,
+  sections: DEFAULT_SECTIONS,
+};
+
 const TermsAndConditions = () => {
+  const { content } = usePageContent('termsAndConditions', DEFAULT_TC);
+  const sections = content?.sections || DEFAULT_TC.sections;
+  const lastUpdated = content?.lastUpdated || DEFAULT_TC.lastUpdated;
+
   return (
     <AnimatedPage>
       <div style={{ background: '#FAF7F2' }}>
@@ -108,7 +119,7 @@ const TermsAndConditions = () => {
               className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
               style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
             >
-              Terms & Conditions
+              {content?.pageTitle || 'Terms & Conditions'}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -189,6 +200,18 @@ const TermsAndConditions = () => {
               }}
             >
               Refund & Cancellation Policy
+            </Link>
+            <Link
+              to="/privacy-policy"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                background: '#FFFFFF',
+                color: '#2C2C2C',
+                boxShadow: '0 2px 12px rgba(44,44,44,0.08)',
+              }}
+            >
+              Privacy Policy
             </Link>
             <Link
               to="/contact"

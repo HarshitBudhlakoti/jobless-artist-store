@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FiHeart, FiSmile, FiAward } from 'react-icons/fi';
+import { usePageContent, useSiteSettings } from '../../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,14 +35,26 @@ const BrushDivider = () => (
   </div>
 );
 
-/* ─── Stats data ─── */
-const STATS = [
-  { value: 0, suffix: '+', label: 'Paintings Created', icon: <FiHeart size={24} />, color: '#C75B39' },
-  { value: 0, suffix: '+', label: 'Happy Clients', icon: <FiSmile size={24} />, color: '#D4A857' },
-  { value: 0, suffix: '+', label: 'Years of Passion', icon: <FiAward size={24} />, color: '#4A6741' },
-];
+const DEFAULT_STORY = {
+  sectionTitle: 'About the Artist',
+  paragraphs: [
+    'What started as a quiet rebellion against the corporate world became a lifelong love affair with colour, texture, and storytelling. Armed with a brush and an unshakeable belief that art should be felt, not just seen, the \u201cJobless Artist\u201d was born.',
+    'Every painting is a conversation -- between the artist and the canvas, between the brushstroke and the viewer. From vibrant abstracts that pulse with energy to tender portraits that whisper of quiet moments, each piece carries a fragment of a shared human experience.',
+    'The journey continues -- one brushstroke at a time, building a community of collectors who have become family.',
+  ],
+  signatureLine: 'Creating with love',
+};
 
 const ArtistStory = () => {
+  const { content } = usePageContent('artistStory', DEFAULT_STORY);
+  const { data: settings } = useSiteSettings();
+  const stats = settings?.artistStats;
+
+  const STATS = useMemo(() => [
+    { value: stats?.paintingsCreated ?? 0, suffix: '+', label: 'Paintings Created', icon: <FiHeart size={24} />, color: '#C75B39' },
+    { value: stats?.happyClients ?? 0, suffix: '+', label: 'Happy Clients', icon: <FiSmile size={24} />, color: '#D4A857' },
+    { value: stats?.yearsOfPassion ?? 0, suffix: '+', label: 'Years of Passion', icon: <FiAward size={24} />, color: '#4A6741' },
+  ], [stats]);
   const sectionRef = useRef(null);
   const imageRef = useRef(null);
   const textRef = useRef(null);
@@ -155,7 +168,7 @@ const ArtistStory = () => {
           {/* Section title */}
           <div className="flex flex-col items-center mb-14">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4 font-display text-primary">
-              About the Artist
+              {content?.sectionTitle || DEFAULT_STORY.sectionTitle}
             </h2>
             <div className="flex items-center gap-3">
               <span className="block w-12 h-0.5 bg-accent-gold" />
@@ -233,31 +246,18 @@ const ArtistStory = () => {
               </h3>
 
               <div className="space-y-5">
-                <p className="text-lg leading-relaxed font-body text-text-secondary">
-                  What started as a quiet rebellion against the corporate world became a
-                  lifelong love affair with colour, texture, and storytelling. Armed with
-                  a brush and an unshakeable belief that art should be felt, not just
-                  seen, the &ldquo;Jobless Artist&rdquo; was born.
-                </p>
-
-                <p className="text-lg leading-relaxed font-body text-text-secondary">
-                  Every painting is a conversation -- between the artist and the canvas,
-                  between the brushstroke and the viewer. From vibrant abstracts that
-                  pulse with energy to tender portraits that whisper of quiet moments,
-                  each piece carries a fragment of a shared human experience.
-                </p>
-
-                <p className="text-lg leading-relaxed font-body text-text-secondary">
-                  The journey continues -- one brushstroke at a time, building a
-                  community of collectors who have become family.
-                </p>
+                {(content?.paragraphs || DEFAULT_STORY.paragraphs).map((para, i) => (
+                  <p key={i} className="text-lg leading-relaxed font-body text-text-secondary">
+                    {para}
+                  </p>
+                ))}
               </div>
 
               {/* Signature line */}
               <div className="mt-8 flex items-center gap-4">
                 <div className="w-16 h-0.5 bg-accent" />
                 <span className="text-lg italic font-display text-accent">
-                  Creating with love
+                  {content?.signatureLine || DEFAULT_STORY.signatureLine}
                 </span>
               </div>
             </div>

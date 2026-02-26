@@ -31,6 +31,22 @@ const orderSchema = new mongoose.Schema(
       required: [true, 'Total amount is required'],
       min: [0, 'Total cannot be negative'],
     },
+    shippingMethod: {
+      type: String,
+      enum: ['india-post', 'delhivery'],
+      default: 'india-post',
+    },
+    shippingCost: {
+      type: Number,
+      default: 0,
+      min: [0, 'Shipping cost cannot be negative'],
+    },
+    courierTrackingId: {
+      type: String,
+    },
+    courierDetails: {
+      type: mongoose.Schema.Types.Mixed,
+    },
     shippingAddress: {
       street: { type: String, required: true },
       city: { type: String, required: true },

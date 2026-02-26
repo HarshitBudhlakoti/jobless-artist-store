@@ -14,6 +14,7 @@ import {
   FiArrowRight,
 } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -133,7 +134,44 @@ const stats = [
 /* ================================================================== */
 /*  ABOUT PAGE                                                        */
 /* ================================================================== */
+const DEFAULT_ABOUT = {
+  heroTitle: 'The Story Behind Jobless Artist',
+  storySections: storySections.map(({ title, text }) => ({ title, text })),
+  values: values.map(({ title, desc }) => ({ title, desc })),
+  processSteps: processSteps.map(({ title, desc }) => ({ title, desc })),
+};
+
+const VALUE_ICONS = [FiHeart, FiStar, FiFeather];
+const PROCESS_ICONS = [FiMessageCircle, FiEdit3, FiLayers, FiTruck];
+
 const About = () => {
+  const { content } = usePageContent('aboutPage', DEFAULT_ABOUT);
+  const { data: settings } = useSiteSettings();
+  const artistStats = settings?.artistStats;
+
+  const cmsStorySections = (content?.storySections || DEFAULT_ABOUT.storySections).map((s, i) => ({
+    ...storySections[i],
+    ...s,
+    id: storySections[i]?.id || `section-${i}`,
+    gradient: storySections[i]?.gradient || 'from-amber-200 via-orange-200 to-rose-200',
+  }));
+
+  const cmsValues = (content?.values || DEFAULT_ABOUT.values).map((v, i) => ({
+    ...v,
+    icon: VALUE_ICONS[i] || FiHeart,
+  }));
+
+  const cmsProcessSteps = (content?.processSteps || DEFAULT_ABOUT.processSteps).map((s, i) => ({
+    ...s,
+    icon: PROCESS_ICONS[i] || FiMessageCircle,
+  }));
+
+  const cmsStats = [
+    { value: artistStats?.paintingsCreated ?? 0, suffix: '+', label: 'Paintings Completed' },
+    { value: artistStats?.happyClients ?? 0, suffix: '+', label: 'Happy Customers' },
+    { value: artistStats?.yearsOfPassion ?? 0, suffix: '+', label: 'Years of Experience' },
+  ];
+
   const heroRef = useRef(null);
   const headingRef = useRef(null);
   const artistPhotoRef = useRef(null);
@@ -264,7 +302,7 @@ const About = () => {
       if (statsRef.current) {
         statsNumberRefs.current.forEach((el, i) => {
           if (!el) return;
-          const target = stats[i].value;
+          const target = cmsStats[i]?.value ?? 0;
           const obj = { val: 0 };
           gsap.to(obj, {
             val: target,
@@ -326,7 +364,7 @@ const About = () => {
     return () => ctx.revert();
   }, []);
 
-  const headingText = 'The Story Behind Jobless Artist';
+  const headingText = content?.heroTitle || DEFAULT_ABOUT.heroTitle;
 
   return (
     <AnimatedPage>
@@ -468,7 +506,7 @@ const About = () => {
         {/*  STORY SECTIONS (alternating layout with parallax)           */}
         {/* ============================================================ */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24 md:space-y-32">
-          {storySections.map((section, index) => (
+          {cmsStorySections.map((section, index) => (
             <div
               key={section.id}
               ref={(el) => (storySectionsRef.current[index] = el)}
@@ -552,7 +590,7 @@ const About = () => {
             </div>
 
             <div ref={valuesRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {values.map((val, i) => {
+              {cmsValues.map((val, i) => {
                 const Icon = val.icon;
                 return (
                   <div
@@ -601,7 +639,7 @@ const About = () => {
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
-              {stats.map((stat, i) => (
+              {cmsStats.map((stat, i) => (
                 <div key={i}>
                   <div className="flex items-baseline justify-center gap-1">
                     <span
@@ -663,7 +701,7 @@ const About = () => {
                 style={{ background: 'linear-gradient(90deg, transparent, #D4A857, #C75B39, transparent)' }}
               />
 
-              {processSteps.map((step, i) => {
+              {cmsProcessSteps.map((step, i) => {
                 const Icon = step.icon;
                 return (
                   <div key={i} className="process-step relative text-center">
@@ -700,7 +738,7 @@ const About = () => {
                     </p>
 
                     {/* Arrow between steps (lg only) */}
-                    {i < processSteps.length - 1 && (
+                    {i < cmsProcessSteps.length - 1 && (
                       <FiArrowRight
                         className="hidden lg:block absolute top-[2.3rem] -right-4 w-5 h-5"
                         style={{ color: '#D4A857' }}

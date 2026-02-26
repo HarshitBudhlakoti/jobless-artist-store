@@ -16,6 +16,9 @@ import {
   FiX,
   FiBell,
   FiChevronDown,
+  FiSettings,
+  FiFileText,
+  FiMessageSquare,
 } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
 
@@ -26,6 +29,9 @@ const navItems = [
   { to: '/control-panel/orders', icon: FiShoppingBag, label: 'Orders' },
   { to: '/control-panel/custom-orders', icon: FiPenTool, label: 'Custom Orders' },
   { to: '/control-panel/users', icon: FiUsers, label: 'Users' },
+  { to: '/control-panel/site-settings', icon: FiSettings, label: 'Site Settings' },
+  { to: '/control-panel/content', icon: FiFileText, label: 'Page Content' },
+  { to: '/control-panel/testimonials', icon: FiMessageSquare, label: 'Testimonials' },
 ];
 
 function Breadcrumb() {

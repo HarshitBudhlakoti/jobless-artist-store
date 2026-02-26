@@ -1,6 +1,11 @@
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const {
+  calcIndiaPostCost,
+  INDIA_POST_FLAT_RATE,
+  INDIA_POST_FREE_THRESHOLD,
+} = require('./shippingController');
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -16,10 +21,10 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    const { items, shippingAddress, notes, paymentId } = req.body;
+    const { items, shippingAddress, notes, paymentId, shippingMethod, shippingCost } = req.body;
 
     // Validate and calculate total from actual product prices
-    let totalAmount = 0;
+    let productSubtotal = 0;
     const orderItems = [];
 
     for (const item of items) {
@@ -47,7 +52,7 @@ const createOrder = async (req, res, next) => {
       }
 
       const itemPrice = product.discountPrice || product.price;
-      totalAmount += itemPrice * item.quantity;
+      productSubtotal += itemPrice * item.quantity;
 
       orderItems.push({
         product: product._id,
@@ -56,10 +61,32 @@ const createOrder = async (req, res, next) => {
       });
     }
 
+    // Server-side shipping cost verification
+    const method = shippingMethod || 'india-post';
+    let verifiedShippingCost = 0;
+
+    if (method === 'india-post') {
+      verifiedShippingCost = calcIndiaPostCost(productSubtotal);
+    } else if (method === 'delhivery') {
+      // Validate Delhivery cost is within a reasonable range
+      const cost = parseFloat(shippingCost) || 0;
+      if (cost < 0 || cost > 5000) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid Delhivery shipping cost',
+        });
+      }
+      verifiedShippingCost = cost;
+    }
+
+    const totalAmount = productSubtotal + verifiedShippingCost;
+
     const order = await Order.create({
       user: req.user._id,
       items: orderItems,
       totalAmount,
+      shippingMethod: method,
+      shippingCost: verifiedShippingCost,
       shippingAddress,
       notes,
       paymentId,
