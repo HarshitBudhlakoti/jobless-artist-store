@@ -1,33 +1,40 @@
 const axios = require('axios');
 
-const BASE_URL = process.env.DELHIVERY_BASE_URL || 'https://staging-express.delhivery.com';
-const API_TOKEN = process.env.DELHIVERY_API_TOKEN;
-const ORIGIN_PIN = process.env.ORIGIN_PINCODE || '263139';
-const DEFAULT_WEIGHT = parseInt(process.env.DEFAULT_PRODUCT_WEIGHT_GRAMS, 10) || 500;
-
-const client = axios.create({
-  baseURL: BASE_URL,
-  timeout: 15000,
-  headers: {
-    Authorization: `Token ${API_TOKEN}`,
-    'Content-Type': 'application/json',
-  },
+// Read env vars at runtime (not module load) for Vercel serverless compatibility
+const getConfig = () => ({
+  baseUrl: process.env.DELHIVERY_BASE_URL || 'https://track.delhivery.com',
+  apiToken: process.env.DELHIVERY_API_TOKEN,
+  originPin: process.env.ORIGIN_PINCODE || '263139',
+  defaultWeight: parseInt(process.env.DEFAULT_PRODUCT_WEIGHT_GRAMS, 10) || 500,
 });
 
-const isConfigured = () => Boolean(API_TOKEN);
+const getClient = () => {
+  const { baseUrl, apiToken } = getConfig();
+  return axios.create({
+    baseURL: baseUrl,
+    timeout: 15000,
+    headers: {
+      Authorization: `Token ${apiToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+const isConfigured = () => Boolean(process.env.DELHIVERY_API_TOKEN);
 
 const calculateCharges = async ({ destinationPin, weightGrams }) => {
   if (!isConfigured()) {
     throw new Error('Delhivery API token not configured');
   }
 
-  const weight = weightGrams || DEFAULT_WEIGHT;
+  const { originPin, defaultWeight } = getConfig();
+  const weight = weightGrams || defaultWeight;
 
-  const { data } = await client.get('/api/kinko/v1/invoice/charges/.json', {
+  const { data } = await getClient().get('/api/kinko/v1/invoice/charges/.json', {
     params: {
       md: 'S',
       cgm: weight,
-      o_pin: ORIGIN_PIN,
+      o_pin: originPin,
       d_pin: destinationPin,
       ss: 'Delivered',
     },
@@ -41,12 +48,13 @@ const createShipment = async (shipmentData) => {
     throw new Error('Delhivery API token not configured');
   }
 
+  const { originPin } = getConfig();
   const payload = `format=json&data=${JSON.stringify({
     shipments: [shipmentData],
-    pickup_location: { pin: ORIGIN_PIN },
+    pickup_location: { pin: originPin },
   })}`;
 
-  const { data } = await client.post('/api/cmu/create.json', payload, {
+  const { data } = await getClient().post('/api/cmu/create.json', payload, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
 
@@ -58,7 +66,7 @@ const trackShipment = async (waybill) => {
     throw new Error('Delhivery API token not configured');
   }
 
-  const { data } = await client.get('/api/v1/packages/json/', {
+  const { data } = await getClient().get('/api/v1/packages/json/', {
     params: { waybill },
   });
 
