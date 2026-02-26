@@ -136,16 +136,16 @@ const Checkout = () => {
     }
     if (!form.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^[+]?[\d\s-]{8,15}$/.test(form.phone.trim())) {
-      newErrors.phone = 'Enter a valid phone number';
+    } else if (!/^(\+91[\s-]?)?[6-9]\d{9}$/.test(form.phone.trim().replace(/[\s-]/g, ''))) {
+      newErrors.phone = 'Enter a valid Indian phone number';
     }
     if (!form.street.trim()) newErrors.street = 'Street address is required';
     if (!form.city.trim()) newErrors.city = 'City is required';
     if (!form.state.trim()) newErrors.state = 'State is required';
     if (!form.zip.trim()) {
       newErrors.zip = 'ZIP/Postal code is required';
-    } else if (!/^[\d]{4,10}$/.test(form.zip.trim())) {
-      newErrors.zip = 'Enter a valid ZIP code';
+    } else if (!/^\d{6}$/.test(form.zip.trim())) {
+      newErrors.zip = 'Enter a valid 6-digit pincode';
     }
     if (!form.country.trim()) newErrors.country = 'Country is required';
 

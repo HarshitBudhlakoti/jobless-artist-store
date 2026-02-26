@@ -34,8 +34,9 @@ const createCategory = async (req, res, next) => {
       });
     }
 
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      name: { $regex: new RegExp(`^${escapedName}$`, 'i') },
     });
 
     if (existingCategory) {

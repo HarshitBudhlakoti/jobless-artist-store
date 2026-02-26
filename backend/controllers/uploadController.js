@@ -66,6 +66,14 @@ const deleteImage = async (req, res, next) => {
       });
     }
 
+    // Validate public_id to prevent path traversal
+    if (/[\/\\]|\.\./.test(public_id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid public_id',
+      });
+    }
+
     // Reconstruct full public_id (folder/filename)
     const fullPublicId = `jobless-artist/${public_id}`;
 

@@ -25,9 +25,10 @@ const getProducts = async (req, res, next) => {
 
     const query = { isActive: true };
 
-    // Search by title (regex)
+    // Search by title (regex - escape user input to prevent ReDoS)
     if (search) {
-      query.title = { $regex: search, $options: 'i' };
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.title = { $regex: escaped, $options: 'i' };
     }
 
     // Filter by category (accepts ObjectId or slug)
@@ -80,8 +81,8 @@ const getProducts = async (req, res, next) => {
     else if (sort === 'newest') sortOption = { createdAt: -1 };
     else if (sort === 'oldest') sortOption = { createdAt: 1 };
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 12), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([

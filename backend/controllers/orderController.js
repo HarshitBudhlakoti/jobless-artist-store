@@ -23,33 +23,42 @@ const createOrder = async (req, res, next) => {
 
     const { items, shippingAddress, notes, paymentId, shippingMethod, shippingCost } = req.body;
 
-    // Validate and calculate total from actual product prices
+    // Validate and calculate total from actual product prices (atomic stock check)
     let productSubtotal = 0;
     const orderItems = [];
+    const stockUpdates = []; // Track updates for rollback on failure
 
     for (const item of items) {
-      const product = await Product.findById(item.product);
+      // Atomically decrement stock — only succeeds if enough stock exists
+      const product = await Product.findOneAndUpdate(
+        { _id: item.product, isActive: true, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity, soldCount: item.quantity } },
+        { new: true }
+      );
 
       if (!product) {
-        return res.status(404).json({
+        // Rollback any stock decrements already made
+        for (const update of stockUpdates) {
+          await Product.findByIdAndUpdate(update.product, {
+            $inc: { stock: update.quantity, soldCount: -update.quantity },
+          });
+        }
+
+        // Check why it failed
+        const check = await Product.findById(item.product);
+        if (!check) {
+          return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+        if (!check.isActive) {
+          return res.status(400).json({ success: false, message: `${check.title} is not available` });
+        }
+        return res.status(400).json({
           success: false,
-          message: `Product not found: ${item.product}`,
+          message: `Insufficient stock for ${check.title}. Available: ${check.stock}`,
         });
       }
 
-      if (!product.isActive) {
-        return res.status(400).json({
-          success: false,
-          message: `Product is not available: ${product.title}`,
-        });
-      }
-
-      if (product.stock < item.quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Insufficient stock for ${product.title}. Available: ${product.stock}`,
-        });
-      }
+      stockUpdates.push({ product: product._id, quantity: item.quantity });
 
       const itemPrice = product.discountPrice || product.price;
       productSubtotal += itemPrice * item.quantity;
@@ -68,15 +77,27 @@ const createOrder = async (req, res, next) => {
     if (method === 'india-post') {
       verifiedShippingCost = calcIndiaPostCost(productSubtotal);
     } else if (method === 'delhivery') {
-      // Validate Delhivery cost is within a reasonable range
-      const cost = parseFloat(shippingCost) || 0;
-      if (cost < 0 || cost > 5000) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid Delhivery shipping cost',
-        });
+      // Server-side Delhivery cost verification
+      const delhivery = require('../utils/delhiveryService');
+      if (delhivery.isConfigured() && shippingAddress?.zip) {
+        try {
+          const chargeData = await delhivery.calculateCharges({ destinationPin: shippingAddress.zip });
+          const serverCost = chargeData?.[0]?.total_amount ?? chargeData?.total_amount ?? null;
+          if (serverCost !== null) {
+            verifiedShippingCost = Math.ceil(serverCost);
+          } else {
+            verifiedShippingCost = Math.min(Math.max(parseFloat(shippingCost) || 0, 0), 2000);
+          }
+        } catch {
+          verifiedShippingCost = Math.min(Math.max(parseFloat(shippingCost) || 0, 0), 2000);
+        }
+      } else {
+        const cost = parseFloat(shippingCost) || 0;
+        if (cost < 0 || cost > 2000) {
+          return res.status(400).json({ success: false, message: 'Invalid shipping cost' });
+        }
+        verifiedShippingCost = cost;
       }
-      verifiedShippingCost = cost;
     }
 
     const totalAmount = productSubtotal + verifiedShippingCost;
@@ -93,15 +114,7 @@ const createOrder = async (req, res, next) => {
       paymentStatus: paymentId ? 'paid' : 'pending',
     });
 
-    // Update stock and soldCount for each product
-    for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: {
-          stock: -item.quantity,
-          soldCount: item.quantity,
-        },
-      });
-    }
+    // Stock already decremented atomically above
 
     const populatedOrder = await Order.findById(order._id)
       .populate('user', 'name email')
@@ -124,8 +137,8 @@ const getMyOrders = async (req, res, next) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 10), 50);
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([
@@ -209,8 +222,8 @@ const getAllOrders = async (req, res, next) => {
       query.paymentStatus = paymentStatus;
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([

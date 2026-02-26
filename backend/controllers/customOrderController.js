@@ -58,8 +58,8 @@ const getMyCustomOrders = async (req, res, next) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 10), 50);
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([
@@ -134,8 +134,8 @@ const getAllCustomOrders = async (req, res, next) => {
       query.status = status;
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([

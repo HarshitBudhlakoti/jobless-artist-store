@@ -130,9 +130,10 @@ const getUsers = async (req, res, next) => {
     const query = {};
 
     if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        { name: { $regex: escaped, $options: 'i' } },
+        { email: { $regex: escaped, $options: 'i' } },
       ];
     }
 
@@ -140,8 +141,8 @@ const getUsers = async (req, res, next) => {
       query.role = role;
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const [users, total] = await Promise.all([
