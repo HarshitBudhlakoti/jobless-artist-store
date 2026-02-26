@@ -231,56 +231,61 @@ const About = () => {
         const image = section.querySelector('.story-image');
         const text = section.querySelector('.story-text');
 
-        gsap.fromTo(
-          image,
-          { x: index % 2 === 0 ? -80 : 80, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'power2.out',
+        if (image) {
+          gsap.fromTo(
+            image,
+            { x: index % 2 === 0 ? -80 : 80, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: 1,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top 80%',
+                end: 'top 30%',
+                toggleActions: 'play none none reverse',
+              },
+            }
+          );
+
+          /* Parallax on the image */
+          gsap.to(image, {
+            y: -40,
+            ease: 'none',
             scrollTrigger: {
               trigger: section,
-              start: 'top 80%',
-              end: 'top 30%',
-              toggleActions: 'play none none reverse',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 1,
             },
-          }
-        );
+          });
+        }
 
-        gsap.fromTo(
-          text,
-          { x: index % 2 === 0 ? 80 : -80, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top 75%',
-              end: 'top 25%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        );
-
-        /* Parallax on the image */
-        gsap.to(image, {
-          y: -40,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1,
-          },
-        });
+        if (text) {
+          gsap.fromTo(
+            text,
+            { x: index % 2 === 0 ? 80 : -80, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: 1,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top 75%',
+                end: 'top 25%',
+                toggleActions: 'play none none reverse',
+              },
+            }
+          );
+        }
       });
 
       /* --- Values cards stagger --- */
       if (valuesRef.current) {
         const cards = valuesRef.current.querySelectorAll('.value-card');
+        if (cards.length === 0) return;
         gsap.fromTo(
           cards,
           { y: 60, opacity: 0 },

@@ -50,6 +50,7 @@ const Login = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const pageRef = useRef(null);
   const leftPanelRef = useRef(null);
   const rightPanelRef = useRef(null);
 
@@ -63,7 +64,6 @@ const Login = () => {
   // GSAP entrance animations
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Left panel fades in
       if (leftPanelRef.current) {
         gsap.fromTo(
           leftPanelRef.current,
@@ -71,7 +71,6 @@ const Login = () => {
           { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' }
         );
       }
-      // Right panel slides in from right
       if (rightPanelRef.current) {
         gsap.fromTo(
           rightPanelRef.current,
@@ -79,12 +78,12 @@ const Login = () => {
           { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out', delay: 0.15 }
         );
       }
-    });
+    }, pageRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5rem)] flex" style={{ background: '#FAF7F2' }}>
+    <div ref={pageRef} className="min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5rem)] flex" style={{ background: '#FAF7F2' }}>
       {/* ---- Left artistic panel (hidden on mobile) ---- */}
       <div
         ref={leftPanelRef}
