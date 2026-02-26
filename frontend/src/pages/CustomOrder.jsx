@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import CustomOrderForm from '../components/custom-order/CustomOrderForm';
 
 const CustomOrder = () => {
   return (
     <AnimatedPage>
+      <SEO title="Custom Order" description="Commission a custom handcrafted painting tailored to your vision. Share your idea and let Jobless Artist bring it to life." path="/custom-order" />
       <div className="min-h-screen" style={{ background: '#FAF7F2' }}>
         {/* Hero Section */}
         <div className="relative overflow-hidden py-16 sm:py-20">

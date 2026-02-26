@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiFilter, FiSearch, FiX } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import FilterSidebar from '../components/shop/FilterSidebar';
 import ProductGrid from '../components/shop/ProductGrid';
 import api from '../api/axios';
@@ -161,6 +162,7 @@ const Shop = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="Shop" description="Browse our collection of unique handcrafted paintings, wall art, and custom art pieces. Find the perfect artwork for your space." path="/shop" />
       <div className="min-h-screen bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Page header */}

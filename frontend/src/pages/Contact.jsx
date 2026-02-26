@@ -17,6 +17,7 @@ import {
 import { FaPinterestP } from 'react-icons/fa';
 import api from '../api/axios';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import { useSiteSettings, usePageContent } from '../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -356,6 +357,7 @@ const Contact = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="Contact Us" description="Get in touch with Jobless Artist for custom orders, inquiries, or collaborations. We'd love to hear from you." path="/contact" />
       <div ref={pageRef} style={{ background: '#FAF7F2' }}>
         {/* ============================================================ */}
         {/*  HERO / PAGE TITLE                                           */}

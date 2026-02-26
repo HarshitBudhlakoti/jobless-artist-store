@@ -1,4 +1,5 @@
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import Hero from '../components/home/Hero';
 import FeaturedWorks from '../components/home/FeaturedWorks';
 import CategoriesGrid from '../components/home/CategoriesGrid';
@@ -9,6 +10,7 @@ import ArtistStory from '../components/home/ArtistStory';
 export default function Home() {
   return (
     <AnimatedPage>
+      <SEO path="/" />
       {/* Full-viewport hero with per-character GSAP animation and parallax */}
       <Hero />
 

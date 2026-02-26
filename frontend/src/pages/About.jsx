@@ -14,6 +14,7 @@ import {
   FiArrowRight,
 } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -368,6 +369,7 @@ const About = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="About" description="Learn the story behind Jobless Artist — handcrafted art created with passion, precision, and a deep love for artistic expression from Haldwani, India." path="/about" />
       <div ref={heroRef} style={{ background: '#FAF7F2' }}>
         {/* ============================================================ */}
         {/*  HERO SECTION                                                */}

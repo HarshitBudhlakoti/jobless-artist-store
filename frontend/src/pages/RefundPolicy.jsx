@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiXCircle, FiRotateCcw, FiAlertCircle, FiCheckCircle, FiPackage, FiMail } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 
 const sections = [
   {
@@ -69,6 +70,7 @@ const sections = [
 const RefundPolicy = () => {
   return (
     <AnimatedPage>
+      <SEO title="Refund & Cancellation Policy" description="Understand our cancellation, return, and refund policies for handcrafted art purchases." path="/refund-policy" />
       <div style={{ background: '#FAF7F2' }}>
         {/* Hero */}
         <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 px-4 overflow-hidden">

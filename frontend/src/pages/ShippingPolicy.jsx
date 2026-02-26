@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiTruck, FiPackage, FiGlobe, FiMapPin, FiClock, FiDollarSign } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import { usePageContent } from '../hooks/useSiteContent';
 
 const SHIPPING_ICONS = [FiTruck, FiClock, FiMapPin, FiGlobe, FiPackage, FiDollarSign];
@@ -80,6 +81,7 @@ const ShippingPolicy = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="Shipping Policy" description="Learn about Jobless Artist shipping options, delivery timelines, and charges for handcrafted art across India." path="/shipping-policy" />
       <div style={{ background: '#FAF7F2' }}>
         {/* Hero */}
         <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 px-4 overflow-hidden">

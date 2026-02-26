@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiShield, FiDatabase, FiShare2, FiLock, FiEye, FiUser, FiSettings, FiMail } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import { usePageContent } from '../hooks/useSiteContent';
 
 const PRIVACY_ICONS = [FiDatabase, FiEye, FiShare2, FiLock, FiShield, FiUser, FiSettings, FiMail];
@@ -104,6 +105,7 @@ const PrivacyPolicy = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="Privacy Policy" description="Learn how Jobless Artist collects, uses, and protects your personal information." path="/privacy-policy" />
       <div style={{ background: '#FAF7F2' }}>
         {/* Hero */}
         <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 px-4 overflow-hidden">

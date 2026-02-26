@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import AnimatedPage from '../components/common/AnimatedPage';
+import SEO from '../components/common/SEO';
 import { usePageContent } from '../hooks/useSiteContent';
 
 const DEFAULT_LAST_UPDATED = '25 February 2026';
@@ -91,6 +92,7 @@ const TermsAndConditions = () => {
 
   return (
     <AnimatedPage>
+      <SEO title="Terms & Conditions" description="Read the terms and conditions for using the Jobless Artist website and purchasing handcrafted art." path="/terms-and-conditions" />
       <div style={{ background: '#FAF7F2' }}>
         {/* Hero */}
         <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 px-4 overflow-hidden">
