@@ -964,7 +964,7 @@ const Checkout = () => {
                     className="text-center text-xs text-gray-400"
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
-                    Secure checkout powered by Razorpay
+                    Secure checkout powered by Cashfree
                   </p>
                 </div>
               </div>
