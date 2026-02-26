@@ -243,7 +243,7 @@ const ProductPage = () => {
 
   return (
     <AnimatedPage>
-      <SEO title={product.name} description={product.description?.slice(0, 160) || `Buy ${product.name} — handcrafted art by Jobless Artist`} path={`/product/${slug}`} type="product" />
+      <SEO title={product.name} description={product.description?.slice(0, 160) || `Buy ${product.name} — handcrafted art by Jobless Artist`} path={`/product/${id}`} type="product" />
       <div className="min-h-screen bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Breadcrumb */}
