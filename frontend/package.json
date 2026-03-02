@@ -13,6 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cashfreepayments/cashfree-js": "^1.0.6",
     "@gsap/react": "^2.1.2",
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.5",

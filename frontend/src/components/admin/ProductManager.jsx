@@ -186,7 +186,8 @@ function ProductFormPanel({ isOpen, onClose, product, categories, onSave }) {
         const formData = new FormData();
         formData.append('images', file);
         const { data } = await api.post('/upload/images', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { 'Content-Type': undefined },
+          timeout: 60000,
         });
         return data.data?.[0] || data.images?.[0] || data[0] || { url: data.url, public_id: data.public_id };
       });

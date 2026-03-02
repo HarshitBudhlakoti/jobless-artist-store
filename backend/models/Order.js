@@ -63,6 +63,9 @@ const orderSchema = new mongoose.Schema(
     paymentId: {
       type: String,
     },
+    cfOrderId: {
+      type: String,
+    },
     orderStatus: {
       type: String,
       enum: [
@@ -91,5 +94,6 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ cfOrderId: 1 });
 
 module.exports = mongoose.model('Order', orderSchema);

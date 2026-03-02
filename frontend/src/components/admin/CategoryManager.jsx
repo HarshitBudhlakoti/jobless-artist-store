@@ -74,7 +74,8 @@ function CategoryModal({ isOpen, onClose, category, onSave }) {
       const formData = new FormData();
       formData.append('image', file);
       const { data } = await api.post('/upload/image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
+        timeout: 60000,
       });
       const image = data.data?.url ? data.data : data.data?.[0] || { url: data.url, public_id: data.public_id };
       setForm((prev) => ({ ...prev, image }));

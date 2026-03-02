@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiLock, FiArrowLeft, FiCreditCard, FiShield, FiTruck } from 'react-icons/fi';
+import { FiLock, FiArrowLeft, FiCreditCard, FiShield, FiTruck } from 'react-icons/fi';
+import { load as loadCashfree } from '@cashfreepayments/cashfree-js';
 import toast from 'react-hot-toast';
 import AnimatedPage from '../components/common/AnimatedPage';
 import useCart from '../hooks/useCart';
@@ -19,7 +20,7 @@ const labelClasses = 'block text-sm font-medium text-[#2C2C2C] mb-1.5';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, cartTotal, cartCount, clearCart } = useCart();
+  const { cartItems, cartTotal, cartCount } = useCart();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [form, setForm] = useState({
@@ -35,9 +36,6 @@ const Checkout = () => {
 
   const [errors, setErrors] = useState({});
   const [paying, setPaying] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [orderNumber, setOrderNumber] = useState('');
-  const [orderId, setOrderId] = useState('');
   const [submitError, setSubmitError] = useState('');
 
   // Shipping state
@@ -65,12 +63,12 @@ const Checkout = () => {
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  // Redirect if cart is empty and not in success state
+  // Redirect if cart is empty
   useEffect(() => {
-    if (!success && cartItems.length === 0 && !authLoading) {
+    if (cartItems.length === 0 && !authLoading) {
       navigate('/cart');
     }
-  }, [cartItems, success, authLoading, navigate]);
+  }, [cartItems, authLoading, navigate]);
 
   // Fetch shipping rates when pincode changes
   const fetchShippingRates = useCallback(
@@ -160,17 +158,11 @@ const Checkout = () => {
     setSubmitError('');
 
     try {
-      // Simulate payment processing (2 second delay)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Create order
-      const orderPayload = {
+      // Create payment order on backend
+      const { data } = await api.post('/payments/create-order', {
         items: cartItems.map((item) => ({
           product: item._id,
-          title: item.title,
-          price: item.price,
           quantity: item.quantity,
-          image: item.image || item.images?.[0]?.url,
         })),
         shippingAddress: {
           fullName: form.fullName,
@@ -184,29 +176,25 @@ const Checkout = () => {
         },
         shippingMethod,
         shippingCost: shipping,
-        subtotal: cartTotal,
-        shipping,
-        total,
-        paymentMethod: 'online',
-        paymentStatus: 'paid',
-      };
+      });
 
-      const { data } = await api.post('/orders', orderPayload);
+      const { payment_session_id } = data.data;
 
-      const newOrderId = data.order?._id || data._id || data.orderId || '';
-      const newOrderNumber =
-        data.order?.orderNumber || data.orderNumber || `ORD-${Date.now()}`;
+      // Load Cashfree SDK and open checkout
+      const cashfreeEnv = import.meta.env.VITE_CASHFREE_ENV || 'sandbox';
+      const cashfree = await loadCashfree({ mode: cashfreeEnv });
 
-      setOrderId(newOrderId);
-      setOrderNumber(newOrderNumber);
-      setSuccess(true);
-      clearCart();
-      toast.success('Order placed successfully!');
+      const result = await cashfree.checkout({ paymentSessionId: payment_session_id });
+
+      // If checkout closes without redirect (e.g. user closes modal), handle it
+      if (result.error) {
+        setSubmitError(result.error.message || 'Payment was cancelled. Please try again.');
+        toast.error('Payment was not completed.');
+      }
     } catch (err) {
-      setSubmitError(
-        err.response?.data?.message || err.message || 'Payment failed. Please try again.'
-      );
-      toast.error('Payment failed. Please try again.');
+      const message = err.data?.message || err.message || 'Payment failed. Please try again.';
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setPaying(false);
     }
@@ -224,115 +212,6 @@ const Checkout = () => {
             <div className="w-12 h-12 rounded-full bg-gray-200" />
             <div className="w-40 h-4 rounded-lg bg-gray-200" />
           </div>
-        </div>
-      </AnimatedPage>
-    );
-  }
-
-  // Success state
-  if (success) {
-    return (
-      <AnimatedPage>
-        <div
-          className="min-h-screen flex items-center justify-center px-4"
-          style={{ background: '#FAF7F2' }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center max-w-md w-full"
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{
-                delay: 0.2,
-                type: 'spring',
-                stiffness: 200,
-                damping: 15,
-              }}
-              className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
-              style={{ background: 'rgba(34,197,94,0.1)' }}
-            >
-              <motion.div
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.5, duration: 0.4 }}
-              >
-                <FiCheck className="w-12 h-12 text-green-500" strokeWidth={3} />
-              </motion.div>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-3xl font-bold mb-3"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: '#2C2C2C',
-              }}
-            >
-              Order Confirmed!
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-gray-500 mb-2"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
-            >
-              Thank you for your purchase. Your order has been placed
-              successfully.
-            </motion.p>
-
-            {orderNumber && (
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55 }}
-                className="text-sm text-gray-400 mb-8"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Order Number:{' '}
-                <span className="font-semibold text-[#2C2C2C]">
-                  {orderNumber}
-                </span>
-              </motion.p>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3"
-            >
-              {orderId && (
-                <Link
-                  to={`/orders/${orderId}`}
-                  className="inline-flex items-center px-6 py-3 rounded-xl text-sm font-semibold
-                    text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                  style={{
-                    background: '#C75B39',
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  View Order
-                </Link>
-              )}
-              <Link
-                to="/shop"
-                className="inline-flex items-center px-6 py-3 rounded-xl text-sm font-semibold
-                  border-2 border-gray-200 text-[#2C2C2C] hover:border-gray-300
-                  hover:bg-gray-50 transition-all duration-200"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Continue Shopping
-              </Link>
-            </motion.div>
-          </motion.div>
         </div>
       </AnimatedPage>
     );

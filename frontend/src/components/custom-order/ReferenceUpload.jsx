@@ -48,7 +48,8 @@ const ReferenceUpload = ({ referenceImages, onChange }) => {
           formData.append('image', file);
 
           const { data } = await api.post('/upload/images', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: { 'Content-Type': undefined },
+            timeout: 60000,
             onUploadProgress: (e) => {
               const pct = Math.round((e.loaded * 100) / (e.total || 1));
               setUploading((prev) => ({

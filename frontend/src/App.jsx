@@ -16,6 +16,7 @@ const ProductPage = lazy(() => import('./pages/ProductPage'));
 const CustomOrder = lazy(() => import('./pages/CustomOrder'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
+const PaymentVerify = lazy(() => import('./pages/PaymentVerify'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -147,6 +148,14 @@ function AppRoutes() {
                   element={
                     <ProtectedRoute>
                       <Checkout />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/checkout/verify"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentVerify />
                     </ProtectedRoute>
                   }
                 />

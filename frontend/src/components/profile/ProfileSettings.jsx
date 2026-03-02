@@ -193,7 +193,8 @@ const ProfileSettings = () => {
         formData.append('avatar', avatarFile);
 
         const { data } = await api.put('/auth/profile', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { 'Content-Type': undefined },
+          timeout: 60000,
         });
         const userData = data.user || data;
         // Manually update the auth context user
