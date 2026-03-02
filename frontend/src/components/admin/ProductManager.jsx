@@ -629,19 +629,13 @@ export default function ProductManager() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, search: search || undefined };
+      const params = { page, limit, search: search || undefined, all: 'true' };
       if (categoryFilter) params.category = categoryFilter;
+      if (statusFilter === 'active') params.isActive = 'true';
+      else if (statusFilter === 'inactive') params.isActive = 'false';
 
-      // For admin, we need to see all products (active and inactive)
       const { data } = await api.get('/products', params);
-      let productList = data.data || [];
-
-      // Client-side status filter since the API filters isActive by default
-      if (statusFilter === 'active') {
-        productList = productList.filter((p) => p.isActive);
-      } else if (statusFilter === 'inactive') {
-        productList = productList.filter((p) => !p.isActive);
-      }
+      const productList = data.data || [];
 
       setProducts(productList);
       setTotalPages(data.pagination?.pages || 1);

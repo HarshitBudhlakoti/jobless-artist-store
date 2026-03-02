@@ -21,9 +21,14 @@ const getProducts = async (req, res, next) => {
       tags,
       sort,
       isFramed,
+      all,
     } = req.query;
 
-    const query = { isActive: true };
+    const query = {};
+    // Only filter by isActive for public requests; admin passes all=true
+    if (all !== 'true') {
+      query.isActive = true;
+    }
 
     // Search by title (regex - escape user input to prevent ReDoS)
     if (search) {
@@ -71,6 +76,13 @@ const getProducts = async (req, res, next) => {
     // Filter by framed status
     if (isFramed !== undefined) {
       query.isFramed = isFramed === 'true';
+    }
+
+    // Explicit isActive filter (for admin status filtering)
+    if (req.query.isActive === 'true') {
+      query.isActive = true;
+    } else if (req.query.isActive === 'false') {
+      query.isActive = false;
     }
 
     // Sort options
