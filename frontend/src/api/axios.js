@@ -31,9 +31,16 @@ api.interceptors.response.use(
       error.response?.data?.message || error.message || 'Something went wrong';
 
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
+      // Don't redirect/clear on login or register attempts — let the page handle the error
+      const requestUrl = error.config?.url || '';
+      const isAuthAttempt = /\/(login|register)$/.test(requestUrl);
+      const isOnLoginPage =
+        window.location.pathname === '/login' ||
+        window.location.pathname === '/control-panel/login';
+
+      if (!isAuthAttempt && !isOnLoginPage) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         toast.error('Session expired. Please log in again.');
         window.location.href = '/login';
       }
