@@ -11,7 +11,7 @@ const TABS = [
   { key: 'policies', label: 'Policies' },
 ];
 
-const HOMEPAGE_SECTIONS = ['hero', 'artistStory', 'customOrderCTA', 'categoriesGrid'];
+const HOMEPAGE_SECTIONS = ['hero', 'artistStory', 'customOrderCTA'];
 const ABOUT_SECTIONS = ['aboutPage'];
 const CONTACT_SECTIONS = ['contactFAQ'];
 const POLICY_SECTIONS = ['shippingPolicy', 'termsAndConditions', 'privacyPolicy'];
