@@ -17,6 +17,9 @@ connectDB();
 
 const app = express();
 
+// Trust proxy (required for express-rate-limit behind Vercel/reverse proxies)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
