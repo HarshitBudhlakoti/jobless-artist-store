@@ -181,49 +181,53 @@ const ArtistStory = () => {
 
           {/* Content grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20">
-            {/* Left: artist photo placeholder */}
+            {/* Left: artist photo */}
             <div ref={imageRef} className="relative">
               <div
                 className="w-full aspect-[3/4] max-w-md mx-auto rounded-2xl overflow-hidden relative"
                 style={{ boxShadow: '0 8px 40px rgba(44,44,44,0.12)' }}
               >
-                {/* Warm gradient placeholder */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(160deg, #D4A857 0%, #C75B39 40%, #8B6914 70%, #2C2C2C 100%)',
-                  }}
-                />
-
-                {/* Artistic texture overlay */}
-                <div
-                  className="absolute inset-0 opacity-30"
-                  style={{
-                    backgroundImage:
-                      'radial-gradient(circle at 40% 30%, rgba(255,255,255,0.4) 0%, transparent 40%), ' +
-                      'radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 35%)',
-                  }}
-                />
-
-                {/* Artist silhouette hint */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" className="opacity-20">
-                    <circle cx="60" cy="40" r="22" stroke="white" strokeWidth="3" />
-                    <path d="M20 110C20 85 38 68 60 68C82 68 100 85 100 110" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                    <path d="M78 75L100 45" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                    <ellipse cx="103" cy="42" rx="5" ry="3" fill="white" opacity="0.5" transform="rotate(-55, 103, 42)" />
-                  </svg>
-                </div>
-
-                {/* Label */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div
-                    className="inline-block px-4 py-2 rounded-lg text-sm text-white/80 font-body"
-                    style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
-                  >
-                    Artist at work
-                  </div>
-                </div>
+                {content?.artistImage?.url ? (
+                  <img
+                    src={content.artistImage.url}
+                    alt="The Artist"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    {/* Warm gradient placeholder */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: 'linear-gradient(160deg, #D4A857 0%, #C75B39 40%, #8B6914 70%, #2C2C2C 100%)',
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 opacity-30"
+                      style={{
+                        backgroundImage:
+                          'radial-gradient(circle at 40% 30%, rgba(255,255,255,0.4) 0%, transparent 40%), ' +
+                          'radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 35%)',
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg width="120" height="120" viewBox="0 0 120 120" fill="none" className="opacity-20">
+                        <circle cx="60" cy="40" r="22" stroke="white" strokeWidth="3" />
+                        <path d="M20 110C20 85 38 68 60 68C82 68 100 85 100 110" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                        <path d="M78 75L100 45" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                        <ellipse cx="103" cy="42" rx="5" ry="3" fill="white" opacity="0.5" transform="rotate(-55, 103, 42)" />
+                      </svg>
+                    </div>
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <div
+                        className="inline-block px-4 py-2 rounded-lg text-sm text-white/80 font-body"
+                        style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
+                      >
+                        Artist at work
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Decorative frame */}

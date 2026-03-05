@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { HiOutlineShoppingBag, HiOutlineSearch, HiOutlineMenu } from 'react-icons/hi';
 import { HiOutlineUser } from 'react-icons/hi2';
+import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
+import api from '../../api/axios';
 import useAuth from '../../hooks/useAuth';
 import useCart from '../../hooks/useCart';
 import MobileMenu from './MobileMenu';
@@ -42,6 +45,21 @@ export default function Navbar() {
     setMobileMenuOpen(false);
     setSearchOpen(false);
   }, [location.pathname]);
+
+  const [resending, setResending] = useState(false);
+  const showVerifyBanner = isAuthenticated && user && user.emailVerified === false;
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      await api.post('/auth/resend-verification');
+      toast.success('Verification email sent! Check your inbox.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to send verification email');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -203,6 +221,27 @@ export default function Navbar() {
           )}
         </nav>
       </motion.header>
+
+      {/* Email verification banner */}
+      {showVerifyBanner && (
+        <div className="fixed top-16 lg:top-20 left-0 right-0 z-40 bg-amber-50 border-b border-amber-200">
+          <div className="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between gap-3 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 text-amber-800">
+              <HiOutlineExclamationTriangle className="h-4 w-4 flex-shrink-0" />
+              <p className="text-xs sm:text-sm font-medium font-body">
+                Please verify your email address.
+              </p>
+            </div>
+            <button
+              onClick={handleResendVerification}
+              disabled={resending}
+              className="flex-shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 disabled:opacity-50 font-body"
+            >
+              {resending ? 'Sending...' : 'Resend email'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Menu */}
       <MobileMenu

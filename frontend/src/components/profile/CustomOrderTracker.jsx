@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   FiMessageCircle,
   FiDollarSign,
   FiThumbsUp,
+  FiThumbsDown,
   FiTool,
   FiEye,
   FiCheckCircle,
@@ -15,8 +17,11 @@ import {
   FiArrowRight,
   FiImage,
   FiClock,
+  FiSend,
 } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 import api from '../../api/axios';
+import { useSiteSettings } from '../../hooks/useSiteContent';
 import { formatPrice, getStatusColor, getImageUrl } from '../../utils/helpers';
 
 /* ---- Stage definitions for the visual timeline ---- */
@@ -138,23 +143,215 @@ const ImageGallery = ({ images, label }) => {
   );
 };
 
+/* ---- Negotiation history timeline ---- */
+const NegotiationTimeline = ({ history }) => {
+  if (!history || history.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <p
+        className="text-xs font-semibold flex items-center gap-1"
+        style={{ fontFamily: "'DM Sans', sans-serif", color: '#2C2C2C' }}
+      >
+        <FiMessageCircle size={12} /> Negotiation History
+      </p>
+      <div className="space-y-2">
+        {history.map((entry, idx) => {
+          const isAdmin = entry.by === 'admin';
+          return (
+            <div
+              key={idx}
+              className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}
+            >
+              <div
+                className={`max-w-[75%] rounded-lg p-3 text-sm ${
+                  isAdmin
+                    ? 'bg-gray-100 text-gray-800'
+                    : 'bg-[#C75B39]/10 text-[#C75B39]'
+                }`}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold capitalize">
+                    {isAdmin ? 'Artist' : 'You'}
+                  </span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                    entry.action === 'quote' ? 'bg-blue-100 text-blue-700' :
+                    entry.action === 'counter' ? 'bg-amber-100 text-amber-700' :
+                    entry.action === 'accept' ? 'bg-green-100 text-green-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {entry.action}
+                  </span>
+                </div>
+                <p className="font-bold text-base">{formatPrice(entry.price)}</p>
+                {entry.message && (
+                  <p className="text-xs mt-1 opacity-80">{entry.message}</p>
+                )}
+                <p className="text-[10px] mt-1 opacity-50">
+                  {new Date(entry.timestamp).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                  })}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ---- Negotiation action buttons for user ---- */
+const NegotiationActions = ({ order, onUpdate }) => {
+  const [showCounter, setShowCounter] = useState(false);
+  const [counterPrice, setCounterPrice] = useState('');
+  const [counterMessage, setCounterMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const lastEntry = order.negotiationHistory?.[order.negotiationHistory.length - 1];
+  const canRespond = order.status === 'quoted' && lastEntry?.by === 'admin';
+
+  if (!canRespond) return null;
+
+  const handleAccept = async () => {
+    setLoading(true);
+    try {
+      await api.post(`/custom-orders/${order._id}/accept`);
+      toast.success('Quote accepted!');
+      onUpdate();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to accept');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setLoading(true);
+    try {
+      await api.post(`/custom-orders/${order._id}/reject`);
+      toast.success('Order cancelled');
+      onUpdate();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to reject');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCounter = async (e) => {
+    e.preventDefault();
+    if (!counterPrice || Number(counterPrice) <= 0) {
+      toast.error('Enter a valid price');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post(`/custom-orders/${order._id}/counter`, {
+        price: Number(counterPrice),
+        message: counterMessage,
+      });
+      toast.success('Counter-offer sent!');
+      setShowCounter(false);
+      setCounterPrice('');
+      setCounterMessage('');
+      onUpdate();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to send counter-offer');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p
+        className="text-xs font-semibold"
+        style={{ fontFamily: "'DM Sans', sans-serif", color: '#2C2C2C' }}
+      >
+        Respond to Quote
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={handleAccept}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          <FiThumbsUp size={14} /> Accept
+        </button>
+        <button
+          onClick={() => setShowCounter(!showCounter)}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors disabled:opacity-50"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          <FiDollarSign size={14} /> Counter
+        </button>
+        <button
+          onClick={handleReject}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          <FiThumbsDown size={14} /> Reject
+        </button>
+      </div>
+
+      {showCounter && (
+        <form onSubmit={handleCounter} className="bg-gray-50 rounded-lg p-3 space-y-2">
+          <input
+            type="number"
+            min="1"
+            value={counterPrice}
+            onChange={(e) => setCounterPrice(e.target.value)}
+            placeholder="Your price (INR)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          />
+          <input
+            type="text"
+            value={counterMessage}
+            onChange={(e) => setCounterMessage(e.target.value)}
+            placeholder="Message (optional)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#C75B39] hover:bg-[#a5492e] transition-colors disabled:opacity-50"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            <FiSend size={14} /> Send Counter-Offer
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
+
 const CustomOrderTracker = () => {
   const [customOrders, setCustomOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
+  const { data: siteSettings } = useSiteSettings();
+  const whatsappNumber = siteSettings?.socialLinks?.whatsapp;
+
+  const fetchCustomOrders = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/custom-orders/my-orders');
+      setCustomOrders(data.orders || data.data || data || []);
+    } catch {
+      setCustomOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCustomOrders = async () => {
-      setLoading(true);
-      try {
-        const { data } = await api.get('/custom-orders/my-orders');
-        setCustomOrders(data.orders || data.data || data || []);
-      } catch {
-        setCustomOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCustomOrders();
   }, []);
 
@@ -416,6 +613,12 @@ const CustomOrderTracker = () => {
                       label="Progress Updates"
                     />
 
+                    {/* Negotiation history */}
+                    <NegotiationTimeline history={order.negotiationHistory} />
+
+                    {/* Negotiation action buttons */}
+                    <NegotiationActions order={order} onUpdate={fetchCustomOrders} />
+
                     {/* Admin notes */}
                     {order.adminNotes && (
                       <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
@@ -432,6 +635,20 @@ const CustomOrderTracker = () => {
                           {order.adminNotes}
                         </p>
                       </div>
+                    )}
+
+                    {/* WhatsApp chat button - only during active negotiation */}
+                    {whatsappNumber && order.status === 'quoted' && order.negotiationHistory?.length > 0 && (
+                      <a
+                        href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi! I have a question about my custom order #${order._id?.slice(-8)?.toUpperCase()}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors"
+                        style={{ background: '#25D366', fontFamily: "'DM Sans', sans-serif" }}
+                      >
+                        <FaWhatsapp size={16} />
+                        Chat on WhatsApp
+                      </a>
                     )}
                   </div>
                 </motion.div>

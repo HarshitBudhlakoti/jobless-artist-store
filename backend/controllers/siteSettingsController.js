@@ -12,7 +12,7 @@ function pick(obj, keys) {
 // Allowed sub-keys per section
 const ALLOWED = {
   contact: ['email', 'phone', 'address', 'workingHours'],
-  socialLinks: ['instagram', 'pinterest', 'facebook', 'twitter', 'youtube'],
+  socialLinks: ['instagram', 'pinterest', 'facebook', 'twitter', 'youtube', 'whatsapp'],
   footer: ['brandDescription', 'copyrightText', 'paymentMethods'],
   artistStats: ['paintingsCreated', 'happyClients', 'yearsOfPassion'],
 };
@@ -60,8 +60,9 @@ const updateSettings = async (req, res, next) => {
 
     if (socialLinks) {
       const safe = pick(socialLinks, ALLOWED.socialLinks);
-      // Validate URLs: must be empty or start with https://
-      for (const [, url] of Object.entries(safe)) {
+      // Validate URLs: must be empty or start with https:// (skip whatsapp - it's a phone number)
+      for (const [key, url] of Object.entries(safe)) {
+        if (key === 'whatsapp') continue;
         if (url && typeof url === 'string' && url.trim() !== '' && !url.startsWith('https://')) {
           return res.status(400).json({ success: false, message: 'Social links must start with https://' });
         }

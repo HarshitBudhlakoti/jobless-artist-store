@@ -25,6 +25,8 @@ function OrderDetailPanel({ isOpen, onClose, order, onSave }) {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [creatingShipment, setCreatingShipment] = useState(false);
+  const [awb, setAwb] = useState('');
 
   useEffect(() => {
     if (order) {
@@ -32,6 +34,7 @@ function OrderDetailPanel({ isOpen, onClose, order, onSave }) {
       setPaymentStatus(order.paymentStatus || 'pending');
       setTrackingNumber(order.trackingNumber || '');
       setNotes(order.notes || '');
+      setAwb(order.courierTrackingId || '');
     }
   }, [order]);
 
@@ -226,6 +229,72 @@ function OrderDetailPanel({ isOpen, onClose, order, onSave }) {
                     />
                   </div>
                 </div>
+
+                {/* Delhivery Shipment Creation */}
+                {order.paymentStatus === 'paid' && !awb && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-2 font-['DM_Sans']">
+                      Create Delhivery Shipment
+                    </h4>
+                    <p className="text-xs text-blue-600 mb-3 font-['DM_Sans']">
+                      Payment received. Create a Delhivery shipment to get an AWB number and auto-update order to shipped.
+                    </p>
+                    <button
+                      onClick={async () => {
+                        setCreatingShipment(true);
+                        try {
+                          const { data } = await api.post('/shipping/create-shipment', {
+                            orderId: order._id,
+                          });
+                          const newAwb = data.data?.awb;
+                          if (newAwb) {
+                            setAwb(newAwb);
+                            setTrackingNumber(newAwb);
+                            setOrderStatus('shipped');
+                            // Auto-update order status to shipped
+                            await api.put(`/orders/${order._id}/status`, {
+                              orderStatus: 'shipped',
+                              trackingNumber: newAwb,
+                            });
+                            toast.success(`Shipment created! AWB: ${newAwb}`);
+                            onSave();
+                          } else {
+                            toast.success('Shipment created');
+                          }
+                        } catch (err) {
+                          toast.error(err?.response?.data?.message || 'Failed to create shipment');
+                        } finally {
+                          setCreatingShipment(false);
+                        }
+                      }}
+                      disabled={creatingShipment}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 font-['DM_Sans']"
+                    >
+                      <FiTruck className="w-4 h-4" />
+                      {creatingShipment ? 'Creating...' : 'Create Shipment'}
+                    </button>
+                  </div>
+                )}
+
+                {/* AWB / Tracking Display */}
+                {awb && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-green-800 mb-1 font-['DM_Sans']">
+                      Delhivery Shipment Created
+                    </h4>
+                    <p className="text-sm text-green-700 font-mono font-['DM_Sans']">
+                      AWB: <strong>{awb}</strong>
+                    </p>
+                    <a
+                      href={`https://www.delhivery.com/track/package/${awb}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-xs text-green-600 hover:text-green-800 underline font-['DM_Sans']"
+                    >
+                      <FiTruck className="w-3 h-3" /> Track on Delhivery
+                    </a>
+                  </div>
+                )}
 
                 {/* Notes */}
                 <div>

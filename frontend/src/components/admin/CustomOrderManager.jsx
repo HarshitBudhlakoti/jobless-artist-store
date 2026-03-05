@@ -12,6 +12,9 @@ import {
   FiImage,
   FiChevronLeft,
   FiChevronRight,
+  FiSend,
+  FiCheck,
+  FiMessageCircle,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -68,6 +71,106 @@ function StatusPipeline({ orders }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AdminNegotiationActions({ order, onSave }) {
+  const [showCounter, setShowCounter] = useState(false);
+  const [counterPrice, setCounterPrice] = useState('');
+  const [counterMessage, setCounterMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const lastEntry = order?.negotiationHistory?.[order.negotiationHistory.length - 1];
+  const userCountered = lastEntry?.by === 'user' && lastEntry?.action === 'counter';
+
+  // Show actions when user has countered (admin can accept or counter back)
+  if (!userCountered) return null;
+
+  const handleAccept = async () => {
+    setLoading(true);
+    try {
+      await api.post(`/custom-orders/${order._id}/accept`);
+      toast.success('Counter-offer accepted!');
+      onSave();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to accept');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCounter = async (e) => {
+    e.preventDefault();
+    if (!counterPrice || Number(counterPrice) <= 0) {
+      toast.error('Enter a valid price');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post(`/custom-orders/${order._id}/counter`, {
+        price: Number(counterPrice),
+        message: counterMessage,
+      });
+      toast.success('Counter-offer sent!');
+      setShowCounter(false);
+      setCounterPrice('');
+      setCounterMessage('');
+      onSave();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to send counter');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+      <p className="text-sm font-semibold text-amber-800 font-['DM_Sans']">
+        Customer countered with {formatPrice(lastEntry.price)}
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={handleAccept}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 font-['DM_Sans']"
+        >
+          <FiCheck className="w-3.5 h-3.5" /> Accept Customer's Price
+        </button>
+        <button
+          onClick={() => setShowCounter(!showCounter)}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-amber-700 bg-white border border-amber-300 hover:bg-amber-100 transition-colors disabled:opacity-50 font-['DM_Sans']"
+        >
+          <FiDollarSign className="w-3.5 h-3.5" /> Counter Back
+        </button>
+      </div>
+      {showCounter && (
+        <form onSubmit={handleCounter} className="space-y-2">
+          <input
+            type="number"
+            min="1"
+            value={counterPrice}
+            onChange={(e) => setCounterPrice(e.target.value)}
+            placeholder="Your price (INR)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20 font-['DM_Sans']"
+          />
+          <input
+            type="text"
+            value={counterMessage}
+            onChange={(e) => setCounterMessage(e.target.value)}
+            placeholder="Message (optional)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20 font-['DM_Sans']"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#C75B39] hover:bg-[#a5492e] transition-colors disabled:opacity-50 font-['DM_Sans']"
+          >
+            <FiSend className="w-3.5 h-3.5" /> Send Counter
+          </button>
+        </form>
+      )}
     </div>
   );
 }
@@ -384,6 +487,45 @@ function CustomOrderDetailPanel({ isOpen, onClose, order, onSave }) {
                   placeholder="Internal notes about this custom order"
                 />
               </div>
+
+              {/* Negotiation History */}
+              {order.negotiationHistory?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-[#1A1A1A] mb-3 font-['DM_Sans'] flex items-center gap-1.5">
+                    <FiMessageCircle className="w-4 h-4" /> Negotiation History
+                  </h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {order.negotiationHistory.map((entry, idx) => {
+                      const isAdmin = entry.by === 'admin';
+                      return (
+                        <div key={idx} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+                          <div className={`max-w-[75%] rounded-lg p-3 text-sm ${
+                            isAdmin ? 'bg-[#C75B39]/10 text-[#C75B39]' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            <div className="flex items-center gap-2 mb-1 font-['DM_Sans']">
+                              <span className="text-xs font-semibold">{isAdmin ? 'You (Admin)' : 'Customer'}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                entry.action === 'quote' ? 'bg-blue-100 text-blue-700' :
+                                entry.action === 'counter' ? 'bg-amber-100 text-amber-700' :
+                                entry.action === 'accept' ? 'bg-green-100 text-green-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>{entry.action}</span>
+                            </div>
+                            <p className="font-bold text-base font-['DM_Sans']">{formatPrice(entry.price)}</p>
+                            {entry.message && <p className="text-xs mt-1 opacity-80 font-['DM_Sans']">{entry.message}</p>}
+                            <p className="text-[10px] mt-1 opacity-50 font-['DM_Sans']">
+                              {new Date(entry.timestamp).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Admin negotiation actions */}
+              <AdminNegotiationActions order={order} onSave={onSave} />
             </div>
 
             {/* Footer */}
@@ -433,7 +575,7 @@ export default function CustomOrderManager() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/custom-orders', { params: { limit: 200 } });
+      const { data } = await api.get('/custom-orders/admin/all', { params: { limit: 200 } });
       const list = data.data || [];
       setAllOrders(list);
     } catch {

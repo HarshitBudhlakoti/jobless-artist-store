@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FiSave, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { useState, useEffect, useRef } from 'react';
+import { FiSave, FiPlus, FiTrash2, FiUpload, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { invalidateCache } from '../../hooks/useSiteContent';
@@ -43,6 +43,64 @@ const inputClass =
 const labelClass = "block text-sm font-medium text-gray-700 mb-1.5 font-['DM_Sans']";
 const btnSmClass =
   "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors font-['DM_Sans']";
+
+// Single image uploader — uploads to Cloudinary via /api/upload/images
+function ImageUploader({ image, setImage, label }) {
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('images', file);
+      const { data } = await api.post('/upload/images', formData, {
+        headers: { 'Content-Type': undefined },
+        timeout: 60000,
+      });
+      const uploaded = data.data?.[0] || { url: data.url, public_id: data.public_id };
+      setImage(uploaded);
+      toast.success('Image uploaded');
+    } catch {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      {image?.url ? (
+        <div className="relative inline-block rounded-lg overflow-hidden border border-gray-200">
+          <img src={image.url} alt="" className="w-48 h-48 object-cover" />
+          <button
+            type="button"
+            onClick={() => setImage(null)}
+            className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          >
+            <FiX className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div
+          onClick={() => fileRef.current?.click()}
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#C75B39] hover:bg-[#C75B39]/5 transition-colors"
+        >
+          <FiUpload className="w-6 h-6 mx-auto text-gray-400 mb-2" />
+          <p className="text-sm text-gray-500 font-['DM_Sans']">
+            {uploading ? 'Uploading...' : 'Click to upload image'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1 font-['DM_Sans']">JPG, PNG, WebP up to 5MB</p>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+    </div>
+  );
+}
 
 // Generic list editor for arrays of objects (sections, features, etc.)
 function ListEditor({ items, setItems, fields, label }) {
@@ -176,6 +234,11 @@ function ArtistStoryEditor({ content, setContent }) {
 
   return (
     <div className="space-y-4">
+      <ImageUploader
+        image={content.artistImage || null}
+        setImage={(img) => update('artistImage', img)}
+        label="Artist Photo"
+      />
       <div>
         <label className={labelClass}>Section Title</label>
         <input className={inputClass} value={content.sectionTitle || ''} onChange={(e) => update('sectionTitle', e.target.value)} />
@@ -257,21 +320,71 @@ function CategoriesGridEditor({ content, setContent }) {
 function AboutPageEditor({ content, setContent }) {
   const update = (field, value) => setContent({ ...content, [field]: value });
 
+  const updateStoryImage = (idx, img) => {
+    const sections = [...(content.storySections || [])];
+    sections[idx] = { ...sections[idx], image: img };
+    update('storySections', sections);
+  };
+
   return (
     <div className="space-y-4">
+      <ImageUploader
+        image={content.artistImage || null}
+        setImage={(img) => update('artistImage', img)}
+        label="Artist Photo (About Page)"
+      />
       <div>
         <label className={labelClass}>Hero Title</label>
         <input className={inputClass} value={content.heroTitle || ''} onChange={(e) => update('heroTitle', e.target.value)} />
       </div>
-      <ListEditor
-        items={content.storySections || []}
-        setItems={(val) => update('storySections', val)}
-        fields={[
-          { key: 'title', label: 'Title' },
-          { key: 'text', label: 'Text', type: 'textarea' },
-        ]}
-        label="Story Sections"
-      />
+      <div className="space-y-4">
+        <span className={labelClass}>Story Sections</span>
+        {(content.storySections || []).map((section, idx) => (
+          <div key={idx} className="p-4 rounded-lg bg-gray-50 border border-gray-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-gray-500 font-['DM_Sans']">Section {idx + 1}</label>
+              <button
+                onClick={() => update('storySections', (content.storySections || []).filter((_, i) => i !== idx))}
+                className="p-1 text-red-400 hover:text-red-600 rounded transition-colors"
+              >
+                <FiTrash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <input
+              className={inputClass}
+              placeholder="Title"
+              value={section.title || ''}
+              onChange={(e) => {
+                const copy = [...(content.storySections || [])];
+                copy[idx] = { ...copy[idx], title: e.target.value };
+                update('storySections', copy);
+              }}
+            />
+            <textarea
+              className={inputClass}
+              rows={3}
+              placeholder="Text"
+              value={section.text || ''}
+              onChange={(e) => {
+                const copy = [...(content.storySections || [])];
+                copy[idx] = { ...copy[idx], text: e.target.value };
+                update('storySections', copy);
+              }}
+            />
+            <ImageUploader
+              image={section.image || null}
+              setImage={(img) => updateStoryImage(idx, img)}
+              label={`Section ${idx + 1} Image`}
+            />
+          </div>
+        ))}
+        <button
+          onClick={() => update('storySections', [...(content.storySections || []), { title: '', text: '' }])}
+          className={`${btnSmClass} bg-gray-100 text-gray-700 hover:bg-gray-200`}
+        >
+          <FiPlus className="w-3.5 h-3.5" /> Add Section
+        </button>
+      </div>
       <ListEditor
         items={content.values || []}
         setItems={(val) => update('values', val)}

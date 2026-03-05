@@ -1,6 +1,9 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const cashfree = require('../utils/cashfreeService');
+const sendEmail = require('../utils/sendEmail');
+const emailTemplates = require('../utils/emailTemplates');
+const SiteSettings = require('../models/SiteSettings');
 const {
   calcIndiaPostCost,
 } = require('./shippingController');
@@ -184,6 +187,41 @@ const verifyPayment = async (req, res, next) => {
       const populatedOrder = await Order.findById(order._id)
         .populate('user', 'name email')
         .populate('items.product', 'title images price');
+
+      // Fire-and-forget email notifications
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      try {
+        const userName = populatedOrder.user?.name || 'Customer';
+        const userEmail = populatedOrder.user?.email;
+
+        // Payment confirmation to user
+        if (userEmail) {
+          const emailData = emailTemplates.paymentConfirmed({
+            userName,
+            orderId: order._id.toString(),
+            totalAmount: order.totalAmount,
+            clientUrl,
+          });
+          sendEmail({ to: userEmail, ...emailData }).catch(() => {});
+        }
+
+        // Admin notification
+        const settings = await SiteSettings.getSettings();
+        const adminEmail = settings?.contact?.email;
+        if (adminEmail) {
+          const adminData = emailTemplates.adminNewOrder({
+            orderId: order._id.toString(),
+            userName,
+            userEmail: userEmail || 'N/A',
+            totalAmount: order.totalAmount,
+            itemCount: order.items?.length || 0,
+            clientUrl,
+          });
+          sendEmail({ to: adminEmail, ...adminData }).catch(() => {});
+        }
+      } catch {
+        // Non-blocking
+      }
 
       return res.json({ success: true, data: populatedOrder });
     }

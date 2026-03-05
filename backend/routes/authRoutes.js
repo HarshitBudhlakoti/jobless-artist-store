@@ -9,6 +9,8 @@ const {
   updateProfile,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const { registerValidator, loginValidator } = require('../utils/validators');
@@ -40,6 +42,10 @@ router.get('/google/failure', (req, res) => {
 // Protected routes
 router.get('/me', auth, getMe);
 router.put('/profile', auth, updateProfile);
+
+// Email verification
+router.get('/verify-email/:token', verifyEmail);
+router.post('/resend-verification', auth, resendVerification);
 
 // Password reset
 router.post('/forgot-password', forgotPassword);

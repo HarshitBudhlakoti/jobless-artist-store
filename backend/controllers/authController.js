@@ -34,6 +34,40 @@ const register = async (req, res, next) => {
       password,
     });
 
+    // Send verification email (fire-and-forget)
+    try {
+      const verifyToken = crypto.randomBytes(32).toString('hex');
+      user.emailVerificationToken = crypto
+        .createHash('sha256')
+        .update(verifyToken)
+        .digest('hex');
+      user.emailVerificationExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+      await user.save();
+
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const verifyUrl = `${clientUrl}/verify-email/${verifyToken}`;
+
+      sendEmail({
+        to: user.email,
+        subject: 'Verify Your Email - Jobless Artist',
+        html: `
+          <h1>Welcome to Jobless Artist!</h1>
+          <p>Hello ${user.name},</p>
+          <p>Please verify your email address by clicking the link below:</p>
+          <a href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; background-color: #C75B39; color: white; text-decoration: none; border-radius: 6px;">
+            Verify Email
+          </a>
+          <p>This link will expire in 24 hours.</p>
+          <p>Thank you,<br/>Jobless Artist Team</p>
+        `,
+        text: `Verify your email: ${verifyUrl}`,
+      }).catch(() => {
+        // Non-blocking — email send failure doesn't block registration
+      });
+    } catch {
+      // Non-blocking
+    }
+
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -45,6 +79,7 @@ const register = async (req, res, next) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        emailVerified: user.emailVerified,
       },
       token,
     });
@@ -106,6 +141,7 @@ const login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        emailVerified: user.emailVerified,
       },
       token,
     });
@@ -307,6 +343,90 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+// @desc    Verify email with token
+// @route   GET /api/auth/verify-email/:token
+// @access  Public
+const verifyEmail = async (req, res, next) => {
+  try {
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token',
+      });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpire = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Resend verification email
+// @route   POST /api/auth/resend-verification
+// @access  Private
+const resendVerification = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ success: false, message: 'Email is already verified' });
+    }
+
+    const verifyToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = crypto
+      .createHash('sha256')
+      .update(verifyToken)
+      .digest('hex');
+    user.emailVerificationExpire = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const verifyUrl = `${clientUrl}/verify-email/${verifyToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Verify Your Email - Jobless Artist',
+      html: `
+        <h1>Email Verification</h1>
+        <p>Hello ${user.name},</p>
+        <p>Click below to verify your email:</p>
+        <a href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; background-color: #C75B39; color: white; text-decoration: none; border-radius: 6px;">
+          Verify Email
+        </a>
+        <p>This link expires in 24 hours.</p>
+        <p>Thank you,<br/>Jobless Artist Team</p>
+      `,
+      text: `Verify your email: ${verifyUrl}`,
+    });
+
+    res.json({ success: true, message: 'Verification email sent' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -315,4 +435,6 @@ module.exports = {
   updateProfile,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 };

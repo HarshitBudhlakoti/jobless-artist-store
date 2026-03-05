@@ -241,6 +241,7 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
     description = '',
     medium = '',
     dimensions,
+    isUnique = true,
     isFramed = false,
     stock = 1,
     images = [],
@@ -289,7 +290,7 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
 
   const tabs = [
     { id: 'description', label: 'Description' },
-    { id: 'reviews', label: `Reviews (${reviews.length || reviewCount})` },
+    ...(!isUnique ? [{ id: 'reviews', label: `Reviews (${reviews.length || reviewCount})` }] : []),
     { id: 'shipping', label: 'Shipping Info' },
   ];
 
@@ -323,17 +324,27 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
             {title}
           </h1>
 
-          {/* Rating */}
-          <div className="flex items-center gap-3">
-            <StarRating rating={averageRating} size="sm" />
+          {/* Rating — hidden for unique pieces */}
+          {!isUnique && (
+            <div className="flex items-center gap-3">
+              <StarRating rating={averageRating} size="sm" />
+              <span
+                className="text-sm text-[#2C2C2C]/50"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {averageRating.toFixed(1)} ({reviews.length || reviewCount} review
+                {(reviews.length || reviewCount) !== 1 ? 's' : ''})
+              </span>
+            </div>
+          )}
+          {isUnique && (
             <span
-              className="text-sm text-[#2C2C2C]/50"
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200"
               style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
-              {averageRating.toFixed(1)} ({reviews.length || reviewCount} review
-              {(reviews.length || reviewCount) !== 1 ? 's' : ''})
+              One of a Kind
             </span>
-          </div>
+          )}
         </div>
 
         {/* Price */}
@@ -397,11 +408,13 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
             </span>
             <span
               className={`text-sm font-medium ${
-                isSoldOut ? 'text-red-500' : stock <= 3 ? 'text-[#D4A857]' : 'text-green-600'
+                isSoldOut ? 'text-red-500' : isUnique ? 'text-purple-600' : stock <= 3 ? 'text-[#D4A857]' : 'text-green-600'
               }`}
             >
               {isSoldOut
                 ? 'Sold Out'
+                : isUnique
+                ? 'One of a Kind'
                 : stock <= 3
                 ? `Only ${stock} left`
                 : 'In Stock'}
@@ -411,8 +424,8 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
 
         {/* Quantity + Add to Cart */}
         <div className="space-y-4">
-          {/* Quantity selector */}
-          {!isSoldOut && (
+          {/* Quantity selector — hidden for unique pieces */}
+          {!isSoldOut && !isUnique && (
             <div className="flex items-center gap-4">
               <span
                 className="text-sm text-[#2C2C2C]/60"

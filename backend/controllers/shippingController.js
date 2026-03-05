@@ -1,5 +1,6 @@
 const delhivery = require('../utils/delhiveryService');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 const INDIA_POST_FLAT_RATE = parseInt(process.env.INDIA_POST_FLAT_RATE, 10) || 75;
 const INDIA_POST_FREE_THRESHOLD = parseInt(process.env.INDIA_POST_FREE_THRESHOLD, 10) || 3000;
@@ -13,13 +14,31 @@ function calcIndiaPostCost(cartSubtotal) {
 // @access  Public
 const calculateRates = async (req, res, next) => {
   try {
-    const { destinationPin, cartSubtotal } = req.body;
+    const { destinationPin, cartSubtotal, items } = req.body;
 
     if (!destinationPin || !cartSubtotal) {
       return res.status(400).json({
         success: false,
         message: 'destinationPin and cartSubtotal are required',
       });
+    }
+
+    // Calculate total weight from actual product weights
+    let totalWeight = 500; // default fallback
+    if (items && Array.isArray(items) && items.length > 0) {
+      try {
+        const productIds = items.map((i) => i.product || i.productId || i._id);
+        const products = await Product.find({ _id: { $in: productIds } }).select('weight');
+        const weightMap = {};
+        products.forEach((p) => { weightMap[p._id.toString()] = p.weight || 500; });
+        totalWeight = items.reduce((sum, item) => {
+          const pid = (item.product || item.productId || item._id || '').toString();
+          const qty = item.quantity || 1;
+          return sum + (weightMap[pid] || 500) * qty;
+        }, 0);
+      } catch {
+        // fallback to default
+      }
     }
 
     const indiaPostCost = calcIndiaPostCost(cartSubtotal);
@@ -45,6 +64,7 @@ const calculateRates = async (req, res, next) => {
       try {
         const chargeData = await delhivery.calculateCharges({
           destinationPin,
+          weightGrams: totalWeight,
         });
 
         const totalCharge =

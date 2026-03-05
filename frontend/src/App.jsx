@@ -7,6 +7,7 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import Loader from './components/common/Loader';
 import ScrollToTop from './components/common/ScrollToTop';
+import WhatsAppButton from './components/common/WhatsAppButton';
 import useAuth from './hooks/useAuth';
 
 // Lazy-loaded pages
@@ -29,6 +30,7 @@ const ShippingPolicy = lazy(() => import('./pages/ShippingPolicy'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -141,6 +143,7 @@ function AppRoutes() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/google/callback" element={<GoogleCallback />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
                 {/* Protected routes */}
                 <Route
@@ -185,6 +188,7 @@ function AppRoutes() {
       </main>
 
       {showChrome && <Footer />}
+      {showChrome && <WhatsAppButton />}
     </>
   );
 }

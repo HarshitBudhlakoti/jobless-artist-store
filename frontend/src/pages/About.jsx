@@ -446,43 +446,51 @@ const About = () => {
             <DecorativeCorner className="absolute -bottom-4 -left-4 z-10 -rotate-90" />
             <DecorativeCorner className="absolute -bottom-4 -right-4 z-10 rotate-180" />
 
-            {/* Warm gradient placeholder for artist photo */}
+            {/* Artist photo */}
             <div
               className="relative aspect-[4/5] rounded-2xl overflow-hidden"
               style={{
                 boxShadow: '0 20px 60px rgba(44,44,44,0.12)',
               }}
             >
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #F5E6D3 0%, #E8C9A9 25%, #D4A87A 50%, #C4916A 75%, #B87A5E 100%)',
-                }}
-              />
-              {/* Artist silhouette placeholder */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center opacity-30">
-                  <svg className="w-24 h-24 mx-auto mb-3" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="35" r="18" stroke="#2C2C2C" strokeWidth="2" />
-                    <path
-                      d="M20 90C20 65 35 55 50 55C65 55 80 65 80 90"
-                      stroke="#2C2C2C"
-                      strokeWidth="2"
-                      fill="none"
-                    />
-                    {/* Paint brush in hand */}
-                    <line x1="65" y1="60" x2="85" y2="35" stroke="#C75B39" strokeWidth="2.5" strokeLinecap="round" />
-                    <circle cx="87" cy="33" r="3" fill="#C75B39" opacity="0.6" />
-                  </svg>
-                  <p
-                    className="text-sm"
-                    style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
-                  >
-                    The Artist at Work
-                  </p>
-                </div>
-              </div>
+              {content?.artistImage?.url ? (
+                <img
+                  src={content.artistImage.url}
+                  alt="The Artist"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #F5E6D3 0%, #E8C9A9 25%, #D4A87A 50%, #C4916A 75%, #B87A5E 100%)',
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center opacity-30">
+                      <svg className="w-24 h-24 mx-auto mb-3" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="35" r="18" stroke="#2C2C2C" strokeWidth="2" />
+                        <path
+                          d="M20 90C20 65 35 55 50 55C65 55 80 65 80 90"
+                          stroke="#2C2C2C"
+                          strokeWidth="2"
+                          fill="none"
+                        />
+                        <line x1="65" y1="60" x2="85" y2="35" stroke="#C75B39" strokeWidth="2.5" strokeLinecap="round" />
+                        <circle cx="87" cy="33" r="3" fill="#C75B39" opacity="0.6" />
+                      </svg>
+                      <p
+                        className="text-sm"
+                        style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
+                      >
+                        The Artist at Work
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Overlay gradient at bottom */}
               <div
@@ -521,24 +529,32 @@ const About = () => {
                 index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
               }`}
             >
-              {/* Image placeholder */}
+              {/* Section image */}
               <div className="story-image w-full md:w-1/2 flex-shrink-0">
                 <div
-                  className={`relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br ${section.gradient}`}
+                  className={`relative aspect-[4/3] rounded-2xl overflow-hidden ${!section.image?.url ? `bg-gradient-to-br ${section.gradient}` : ''}`}
                   style={{ boxShadow: '0 12px 40px rgba(44,44,44,0.08)' }}
                 >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center opacity-25">
-                      <svg className="w-16 h-16 mx-auto mb-2" viewBox="0 0 64 64" fill="none">
-                        <rect x="8" y="12" width="48" height="40" rx="2" stroke="#2C2C2C" strokeWidth="2" />
-                        <path d="M8 40L24 28L36 38L48 26L56 34" stroke="#2C2C2C" strokeWidth="2" fill="none" />
-                        <circle cx="22" cy="24" r="4" stroke="#2C2C2C" strokeWidth="2" />
-                      </svg>
-                      <p className="text-xs" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                        {section.title}
-                      </p>
+                  {section.image?.url ? (
+                    <img
+                      src={section.image.url}
+                      alt={section.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center opacity-25">
+                        <svg className="w-16 h-16 mx-auto mb-2" viewBox="0 0 64 64" fill="none">
+                          <rect x="8" y="12" width="48" height="40" rx="2" stroke="#2C2C2C" strokeWidth="2" />
+                          <path d="M8 40L24 28L36 38L48 26L56 34" stroke="#2C2C2C" strokeWidth="2" fill="none" />
+                          <circle cx="22" cy="24" r="4" stroke="#2C2C2C" strokeWidth="2" />
+                        </svg>
+                        <p className="text-xs" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                          {section.title}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

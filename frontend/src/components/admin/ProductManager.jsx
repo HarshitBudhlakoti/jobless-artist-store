@@ -48,8 +48,10 @@ const emptyForm = {
   images: [],
   medium: '',
   dimensions: { width: '', height: '', unit: 'in' },
+  isUnique: true,
   isFramed: false,
   stock: 1,
+  weight: 500,
   tags: '',
   isFeatured: false,
   isActive: true,
@@ -152,8 +154,10 @@ function ProductFormPanel({ isOpen, onClose, product, categories, onSave }) {
           height: product.dimensions?.height || '',
           unit: product.dimensions?.unit || 'in',
         },
+        isUnique: product.isUnique !== false,
         isFramed: product.isFramed || false,
         stock: product.stock ?? 1,
+        weight: product.weight ?? 500,
         tags: product.tags?.join(', ') || '',
         isFeatured: product.isFeatured || false,
         isActive: product.isActive !== false,
@@ -241,7 +245,9 @@ function ProductFormPanel({ isOpen, onClose, product, categories, onSave }) {
         ...form,
         price: Number(form.price),
         discountPrice: form.discountPrice ? Number(form.discountPrice) : undefined,
-        stock: Number(form.stock),
+        isUnique: form.isUnique,
+        stock: form.isUnique ? 1 : Number(form.stock),
+        weight: Number(form.weight) || 500,
         tags: form.tags
           ? form.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
           : [],
@@ -508,18 +514,35 @@ function ProductFormPanel({ isOpen, onClose, product, categories, onSave }) {
                 </div>
               </div>
 
-              {/* Stock */}
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5 font-['DM_Sans']">
-                  Stock
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.stock}
-                  onChange={(e) => handleChange('stock', e.target.value)}
-                  className="w-full max-w-[200px] px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20 font-['DM_Sans']"
-                />
+              {/* Stock & Weight */}
+              <div className={`grid ${form.isUnique ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+                {!form.isUnique && (
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5 font-['DM_Sans']">
+                      Stock
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.stock}
+                      onChange={(e) => handleChange('stock', e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20 font-['DM_Sans']"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5 font-['DM_Sans']">
+                    Weight (grams)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.weight}
+                    onChange={(e) => handleChange('weight', e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:border-[#C75B39] focus:ring-2 focus:ring-[#C75B39]/20 font-['DM_Sans']"
+                    placeholder="500"
+                  />
+                </div>
               </div>
 
               {/* Tags */}
@@ -549,7 +572,12 @@ function ProductFormPanel({ isOpen, onClose, product, categories, onSave }) {
               </div>
 
               {/* Toggles */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <ToggleSwitch
+                  checked={form.isUnique}
+                  onChange={(val) => handleChange('isUnique', val)}
+                  label="One of a Kind"
+                />
                 <ToggleSwitch
                   checked={form.isFramed}
                   onChange={(val) => handleChange('isFramed', val)}
@@ -917,17 +945,23 @@ export default function ProductManager() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`text-sm font-medium font-['DM_Sans'] ${
-                          product.stock === 0
-                            ? 'text-red-600'
-                            : product.stock <= 3
-                            ? 'text-yellow-600'
-                            : 'text-[#1A1A1A]'
-                        }`}
-                      >
-                        {product.stock}
-                      </span>
+                      {product.isUnique !== false ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 font-['DM_Sans']">
+                          One of a Kind
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-sm font-medium font-['DM_Sans'] ${
+                            product.stock === 0
+                              ? 'text-red-600'
+                              : product.stock <= 3
+                              ? 'text-yellow-600'
+                              : 'text-[#1A1A1A]'
+                          }`}
+                        >
+                          {product.stock}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <button

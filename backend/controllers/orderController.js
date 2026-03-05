@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const sendEmail = require('../utils/sendEmail');
+const emailTemplates = require('../utils/emailTemplates');
 const {
   calcIndiaPostCost,
   INDIA_POST_FLAT_RATE,
@@ -282,6 +284,34 @@ const updateOrderStatus = async (req, res, next) => {
     const updatedOrder = await Order.findById(order._id)
       .populate('user', 'name email')
       .populate('items.product', 'title images price');
+
+    // Fire-and-forget status change emails
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    try {
+      const userEmail = updatedOrder.user?.email;
+      const userName = updatedOrder.user?.name || 'Customer';
+
+      if (userEmail && orderStatus === 'shipped') {
+        const emailData = emailTemplates.orderShipped({
+          userName,
+          orderId: order._id.toString(),
+          trackingId: order.courierTrackingId || trackingNumber || '',
+          clientUrl,
+        });
+        sendEmail({ to: userEmail, ...emailData }).catch(() => {});
+      }
+
+      if (userEmail && orderStatus === 'delivered') {
+        const emailData = emailTemplates.orderDelivered({
+          userName,
+          orderId: order._id.toString(),
+          clientUrl,
+        });
+        sendEmail({ to: userEmail, ...emailData }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking
+    }
 
     res.json({
       success: true,

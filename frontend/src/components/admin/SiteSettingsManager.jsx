@@ -171,6 +171,18 @@ export default function SiteSettingsManager() {
                       />
                     </div>
                   ))}
+                  <div>
+                    <label className={labelClass}>WhatsApp Number</label>
+                    <input
+                      className={inputClass}
+                      placeholder="+91XXXXXXXXXX"
+                      value={settings.socialLinks?.whatsapp || ''}
+                      onChange={(e) => handleChange('socialLinks', 'whatsapp', e.target.value)}
+                    />
+                    <p className="text-xs text-gray-400 mt-1 font-['DM_Sans']">
+                      Include country code (e.g. +919876543210). Used for the floating WhatsApp chat button.
+                    </p>
+                  </div>
                 </>
               )}
 

@@ -19,6 +19,7 @@ const siteSettingsSchema = new mongoose.Schema(
       facebook: { type: String, default: '', maxlength: 500 },
       twitter: { type: String, default: '', maxlength: 500 },
       youtube: { type: String, default: '', maxlength: 500 },
+      whatsapp: { type: String, default: '+918218585651', maxlength: 50 },
     },
     footer: {
       brandDescription: {

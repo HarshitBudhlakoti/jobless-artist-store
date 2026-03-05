@@ -53,6 +53,16 @@ const userSchema = new mongoose.Schema(
         ref: 'Product',
       },
     ],
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+    },
+    emailVerificationExpire: {
+      type: Date,
+    },
     resetPasswordToken: {
       type: String,
     },

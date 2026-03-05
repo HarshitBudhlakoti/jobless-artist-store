@@ -57,6 +57,10 @@ const productSchema = new mongoose.Schema(
       height: { type: Number },
       unit: { type: String, enum: ['in', 'cm', 'ft'], default: 'in' },
     },
+    isUnique: {
+      type: Boolean,
+      default: true,
+    },
     isFramed: {
       type: Boolean,
       default: false,
@@ -85,6 +89,11 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    weight: {
+      type: Number,
+      default: 500,
+      min: [0, 'Weight cannot be negative'],
     },
     reviews: [
       {

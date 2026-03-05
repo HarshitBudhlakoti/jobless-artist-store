@@ -72,6 +72,15 @@ const customOrderSchema = new mongoose.Schema(
     deadline: {
       type: Date,
     },
+    negotiationHistory: [
+      {
+        price: { type: Number, required: true },
+        message: { type: String, maxlength: 1000 },
+        by: { type: String, enum: ['user', 'admin'], required: true },
+        action: { type: String, enum: ['quote', 'counter', 'accept', 'reject'], required: true },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
