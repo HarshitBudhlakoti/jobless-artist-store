@@ -623,17 +623,41 @@ const Contact = () => {
                 }}
               >
                 <h2
-                  className="text-xl md:text-2xl font-bold mb-6"
+                  className="text-xl md:text-2xl font-bold mb-2"
                   style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
                 >
                   Contact Us
                 </h2>
                 <p
-                  className="text-sm mb-4"
+                  className="text-xs mb-4"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: '#9CA3AF' }}
+                >
+                  Last updated on 17-05-2026 18:18:27
+                </p>
+                <p
+                  className="text-sm mb-5"
                   style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}
                 >
-                  Merchant Legal Entity Name: <strong style={{ color: '#2C2C2C' }}>CHETNA PALARIYA</strong>
+                  You may contact us using the information below:
                 </p>
+                <div className="space-y-3 mb-6">
+                  <p className="text-sm" style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}>
+                    Merchant Legal entity name: <strong style={{ color: '#2C2C2C' }}>CHETNA PALARIYA</strong>
+                  </p>
+                  <p className="text-sm" style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}>
+                    Registered Address: {contactInfo?.address || 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139'}
+                  </p>
+                  <p className="text-sm" style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}>
+                    Operational Address: {contactInfo?.address || 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139'}
+                  </p>
+                  <p className="text-sm" style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}>
+                    Telephone No: {(contactInfo?.phone || '+91 82185 85651').replace(/[\s+\-]/g, '')}
+                  </p>
+                  <p className="text-sm" style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}>
+                    E-Mail ID: {contactInfo?.email || 'joblessartist99@gmail.com'}
+                  </p>
+                </div>
+                <div className="my-6 h-px" style={{ background: 'rgba(44,44,44,0.06)' }} />
                 <div className="space-y-5">
                   {contactDetails.map((item, i) => {
                     const Icon = item.icon;
