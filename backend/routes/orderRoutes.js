@@ -12,7 +12,7 @@ const adminAuth = require('../middleware/adminAuth');
 const { orderValidator } = require('../utils/validators');
 
 // Protected routes
-router.post('/', auth, orderValidator, createOrder);
+router.post('/', auth, adminAuth, orderValidator, createOrder);
 router.get('/my-orders', auth, getMyOrders);
 
 // Admin routes (must be before /:id to avoid conflicts)

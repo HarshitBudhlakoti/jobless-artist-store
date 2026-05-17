@@ -80,17 +80,13 @@ const createPaymentOrder = async (req, res, next) => {
           if (serverCost !== null) {
             verifiedShippingCost = Math.ceil(serverCost);
           } else {
-            verifiedShippingCost = Math.min(Math.max(parseFloat(shippingCost) || 0, 0), 2000);
+            return res.status(503).json({ success: false, message: 'Unable to calculate Delhivery shipping cost. Please try again or choose another shipping method.' });
           }
         } catch {
-          verifiedShippingCost = Math.min(Math.max(parseFloat(shippingCost) || 0, 0), 2000);
+          return res.status(503).json({ success: false, message: 'Delhivery service unavailable. Please try again or choose another shipping method.' });
         }
       } else {
-        const cost = parseFloat(shippingCost) || 0;
-        if (cost < 0 || cost > 2000) {
-          return res.status(400).json({ success: false, message: 'Invalid shipping cost' });
-        }
-        verifiedShippingCost = cost;
+        return res.status(400).json({ success: false, message: 'Delhivery is not configured or shipping address is missing ZIP code.' });
       }
     }
 

@@ -119,6 +119,10 @@ const createShipment = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
+    if (order.paymentStatus !== 'paid') {
+      return res.status(400).json({ success: false, message: 'Cannot create shipment for unpaid order' });
+    }
+
     const addr = order.shippingAddress;
     const shipmentData = {
       name: addr.fullName || order.user?.name || '',

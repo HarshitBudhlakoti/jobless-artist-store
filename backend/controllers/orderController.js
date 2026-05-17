@@ -271,6 +271,16 @@ const updateOrderStatus = async (req, res, next) => {
       });
     }
 
+    // Restore stock if cancelling a paid order
+    if (orderStatus === 'cancelled' && order.orderStatus !== 'cancelled' && order.paymentStatus === 'paid') {
+      const Product = require('../models/Product');
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: item.quantity },
+        });
+      }
+    }
+
     if (orderStatus) {
       order.orderStatus = orderStatus;
     }
