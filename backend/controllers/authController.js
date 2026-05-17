@@ -172,10 +172,9 @@ const googleAuthCallback = (req, res, next) => {
 // @access  Private
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).populate(
-      'wishlist',
-      'title price images'
-    );
+    const user = await User.findById(req.user._id)
+      .select('name email role avatar phone address wishlist emailVerified createdAt')
+      .populate('wishlist', 'title price images');
 
     res.json({
       success: true,

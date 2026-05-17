@@ -147,7 +147,7 @@ const getUsers = async (req, res, next) => {
 
     const [users, total] = await Promise.all([
       User.find(query)
-        .select('-resetPasswordToken -resetPasswordExpire')
+        .select('-resetPasswordToken -resetPasswordExpire -emailVerificationToken -emailVerificationExpire')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum),

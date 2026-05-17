@@ -26,7 +26,7 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    const { items, shippingAddress, notes, paymentId, shippingMethod, shippingCost } = req.body;
+    const { items, shippingAddress, notes, shippingMethod, shippingCost } = req.body;
 
     // Validate and calculate total from actual product prices (atomic stock check)
     let productSubtotal = 0;
@@ -115,8 +115,7 @@ const createOrder = async (req, res, next) => {
       shippingCost: verifiedShippingCost,
       shippingAddress,
       notes,
-      paymentId,
-      paymentStatus: paymentId ? 'paid' : 'pending',
+      paymentStatus: 'pending',
     });
 
     // Stock already decremented atomically above

@@ -72,7 +72,12 @@ const verifyWebhookSignature = (rawBody, timestamp, signature) => {
     .createHmac('sha256', secretKey)
     .update(payload)
     .digest('base64');
-  return expectedSignature === signature;
+  const expectedBuf = Buffer.from(expectedSignature);
+  const signatureBuf = Buffer.from(signature);
+  if (expectedBuf.length !== signatureBuf.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(expectedBuf, signatureBuf);
 };
 
 module.exports = {

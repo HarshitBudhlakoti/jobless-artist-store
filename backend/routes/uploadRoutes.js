@@ -6,11 +6,12 @@ const {
   deleteImage,
 } = require('../controllers/uploadController');
 const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 const { uploadSingle, uploadArray } = require('../middleware/upload');
 
-// Protected routes
-router.post('/image', auth, uploadSingle, uploadImage);
-router.post('/images', auth, uploadArray, uploadImages);
-router.delete('/image/:public_id', auth, deleteImage);
+// Admin-only routes
+router.post('/image', auth, adminAuth, uploadSingle, uploadImage);
+router.post('/images', auth, adminAuth, uploadArray, uploadImages);
+router.delete('/image/:public_id', auth, adminAuth, deleteImage);
 
 module.exports = router;
