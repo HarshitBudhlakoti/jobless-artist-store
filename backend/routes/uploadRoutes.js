@@ -9,9 +9,11 @@ const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 const { uploadSingle, uploadArray } = require('../middleware/upload');
 
-// Admin-only routes
-router.post('/image', auth, adminAuth, uploadSingle, uploadImage);
-router.post('/images', auth, adminAuth, uploadArray, uploadImages);
+// Authenticated users can upload (needed for custom order reference images)
+router.post('/image', auth, uploadSingle, uploadImage);
+router.post('/images', auth, uploadArray, uploadImages);
+
+// Only admins can delete images
 router.delete('/image/:public_id', auth, adminAuth, deleteImage);
 
 module.exports = router;
