@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [wishlist, setWishlist] = useState([]);
 
   // Check for existing token on mount
   useEffect(() => {
@@ -16,13 +17,22 @@ export function AuthProvider({ children }) {
       if (token) {
         try {
           const { data } = await api.get('/auth/me');
-          setUser(data.data || data.user || data);
+          const userData = data.data || data.user || data;
+          setUser(userData);
           setIsAuthenticated(true);
+          // Extract wishlist IDs
+          if (userData.wishlist && Array.isArray(userData.wishlist)) {
+            const ids = userData.wishlist.map((item) =>
+              typeof item === 'string' ? item : item._id
+            );
+            setWishlist(ids);
+          }
         } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
           setIsAuthenticated(false);
+          setWishlist([]);
         }
       }
       setLoading(false);
@@ -106,6 +116,26 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const toggleWishlist = useCallback(async (productId) => {
+    try {
+      const { data } = await api.post('/auth/wishlist/toggle', { productId });
+      const updatedWishlist = (data.wishlist || []).map((item) =>
+        typeof item === 'string' ? item : item._id
+      );
+      setWishlist(updatedWishlist);
+      return { success: true, wishlist: updatedWishlist };
+    } catch (error) {
+      const msg = error.message || 'Failed to update wishlist';
+      toast.error(msg);
+      return { success: false, message: msg };
+    }
+  }, []);
+
+  const isInWishlist = useCallback(
+    (productId) => wishlist.includes(productId),
+    [wishlist]
+  );
+
   const value = {
     user,
     loading,
@@ -116,6 +146,9 @@ export function AuthProvider({ children }) {
     googleLogin,
     updateProfile,
     changePassword,
+    wishlist,
+    toggleWishlist,
+    isInWishlist,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

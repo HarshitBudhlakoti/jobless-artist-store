@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 
 const SITE_NAME = 'Jobless Artist';
-const BASE_URL = 'https://jobless-artist-store.netlify.app';
+const BASE_URL = 'https://www.joblessartist.in';
 const DEFAULT_DESCRIPTION =
   'Discover unique handcrafted art pieces, custom paintings, and personalized commissions by Jobless Artist.';
 

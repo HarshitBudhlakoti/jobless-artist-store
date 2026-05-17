@@ -5,14 +5,13 @@ const errorHandler = (err, req, res, next) => {
   // Mongoose bad ObjectId (CastError)
   if (err.name === 'CastError') {
     statusCode = 400;
-    message = `Invalid ${err.path}: ${err.value}`;
+    message = 'Invalid resource identifier';
   }
 
   // Mongoose duplicate key error (code 11000)
   if (err.code === 11000) {
     statusCode = 400;
-    const field = Object.keys(err.keyValue)[0];
-    message = `Duplicate value for field: ${field}. Please use another value.`;
+    message = 'A record with that value already exists. Please use another value.';
   }
 
   // Mongoose validation error

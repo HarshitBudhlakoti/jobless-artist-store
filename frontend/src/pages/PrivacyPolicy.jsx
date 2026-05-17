@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiShield, FiDatabase, FiShare2, FiLock, FiEye, FiUser, FiSettings, FiMail } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
 import SEO from '../components/common/SEO';
-import { usePageContent } from '../hooks/useSiteContent';
+import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
 const PRIVACY_ICONS = [FiDatabase, FiEye, FiShare2, FiLock, FiShield, FiUser, FiSettings, FiMail];
 
@@ -84,7 +84,7 @@ const DEFAULT_SECTIONS = [
       'If you have any questions or concerns about this Privacy Policy or how we handle your data, please contact us:',
       'Email: joblessartist99@gmail.com',
       'Phone: +91 82185 85651',
-      'Address: Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139',
+      'Address: Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139',
     ],
   },
 ];
@@ -97,9 +97,19 @@ const DEFAULT_PRIVACY = {
 
 const PrivacyPolicy = () => {
   const { content } = usePageContent('privacyPolicy', DEFAULT_PRIVACY);
+  const { data: settings } = useSiteSettings();
+  const contactEmail = settings?.contact?.email || 'joblessartist99@gmail.com';
+  const contactPhone = settings?.contact?.phone || '+91 82185 85651';
+  const contactAddress = settings?.contact?.address || 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139';
   const sections = (content?.sections || DEFAULT_PRIVACY.sections).map((s, i) => ({
     ...s,
     icon: PRIVACY_ICONS[i] || FiShield,
+    content: s.content.map((item) =>
+      item
+        .replace('joblessartist99@gmail.com', contactEmail)
+        .replace('+91 82185 85651', contactPhone)
+        .replace('Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139', contactAddress)
+    ),
   }));
   const lastUpdated = content?.lastUpdated || DEFAULT_PRIVACY.lastUpdated;
 

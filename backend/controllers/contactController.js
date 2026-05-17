@@ -1,4 +1,7 @@
 const sendEmail = require('../utils/sendEmail');
+const { escape } = require('html-escaper');
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 // @desc    Handle contact form submission
 // @route   POST /api/contact
@@ -11,6 +14,20 @@ const submitContact = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
+      });
+    }
+
+    if (!EMAIL_RE.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address',
+      });
+    }
+
+    if (name.length > 100 || subject.length > 200 || message.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Input exceeds maximum allowed length',
       });
     }
 
@@ -33,12 +50,12 @@ const submitContact = async (req, res, next) => {
 
     const html = `
       <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Name:</strong> ${escape(name)}</p>
+      <p><strong>Email:</strong> ${escape(email)}</p>
+      <p><strong>Subject:</strong> ${escape(subject)}</p>
       <hr/>
       <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, '<br/>')}</p>
+      <p>${escape(message).replace(/\n/g, '<br/>')}</p>
       <hr/>
       <p style="color: #888; font-size: 12px;">Sent from the Jobless Artist contact form</p>
     `;

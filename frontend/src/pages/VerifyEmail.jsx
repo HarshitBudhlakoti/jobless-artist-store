@@ -66,12 +66,15 @@ export default function VerifyEmail() {
             <h2 className="text-xl font-bold text-gray-900 font-['Playfair_Display'] mb-2">
               Verification Failed
             </h2>
-            <p className="text-sm text-gray-600 font-['DM_Sans'] mb-6">{message}</p>
+            <p className="text-sm text-gray-600 font-['DM_Sans'] mb-4">{message}</p>
+            <p className="text-sm text-gray-500 font-['DM_Sans'] mb-6">
+              Your verification link may have expired. Please log in and request a new verification email from your profile.
+            </p>
             <Link
-              to="/profile"
+              to="/login"
               className="inline-flex items-center px-6 py-3 bg-[#C75B39] text-white rounded-lg text-sm font-medium hover:bg-[#a5492e] transition-colors font-['DM_Sans']"
             >
-              Go to Profile
+              Go to Login
             </Link>
           </>
         )}

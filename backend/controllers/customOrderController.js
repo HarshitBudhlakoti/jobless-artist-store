@@ -3,6 +3,10 @@ const sendEmail = require('../utils/sendEmail');
 const emailTemplates = require('../utils/emailTemplates');
 const SiteSettings = require('../models/SiteSettings');
 
+// CLIENT_URL may contain comma-separated origins for CORS; use only the first for emails
+const getClientUrl = () =>
+  (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
+
 // @desc    Create a custom order request
 // @route   POST /api/custom-orders
 // @access  Private
@@ -45,7 +49,7 @@ const createCustomOrder = async (req, res, next) => {
     );
 
     // Notify admin of new custom order (fire-and-forget)
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     try {
       const settings = await SiteSettings.getSettings();
       const adminEmail = settings?.contact?.email;
@@ -210,14 +214,11 @@ const updateCustomOrder = async (req, res, next) => {
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         if (field === 'progressImages' && Array.isArray(req.body[field])) {
-          // Append new progress images rather than replacing
-          order.progressImages.push(
-            ...req.body[field].map((img) => ({
-              url: img.url,
-              public_id: img.public_id,
-              uploadedAt: new Date(),
-            }))
-          );
+          order.progressImages = req.body[field].map((img) => ({
+            url: img.url,
+            public_id: img.public_id,
+            caption: img.caption || '',
+          }));
         } else {
           order[field] = req.body[field];
         }
@@ -242,7 +243,7 @@ const updateCustomOrder = async (req, res, next) => {
     );
 
     // Send quote email to user when status changes to quoted
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     if (req.body.status === 'quoted' && req.body.estimatedPrice && updatedOrder.user?.email) {
       try {
         const emailData = emailTemplates.customOrderQuote({
@@ -309,7 +310,7 @@ const acceptQuote = async (req, res, next) => {
     const updated = await CustomOrder.findById(order._id).populate('user', 'name email');
 
     // Notify the other party
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     try {
       if (req.user.role === 'admin' && updated.user?.email) {
         // Notify user that admin accepted
@@ -385,7 +386,7 @@ const counterOffer = async (req, res, next) => {
     const updated = await CustomOrder.findById(order._id).populate('user', 'name email');
 
     // Notify the other party about counter-offer
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     try {
       if (by === 'admin' && updated.user?.email) {
         const emailData = emailTemplates.customOrderNegotiationUpdate({
@@ -449,7 +450,7 @@ const rejectQuote = async (req, res, next) => {
     const updated = await CustomOrder.findById(order._id).populate('user', 'name email');
 
     // Notify admin about rejection
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     try {
       const settings = await SiteSettings.getSettings();
       const adminEmail = settings?.contact?.email;

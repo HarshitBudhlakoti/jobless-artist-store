@@ -155,6 +155,17 @@ export default function SiteSettingsManager() {
                       onChange={(e) => handleChange('contact', 'workingHours', e.target.value)}
                     />
                   </div>
+                  <div>
+                    <label className={labelClass}>Business Owner Name</label>
+                    <input
+                      className={inputClass}
+                      value={settings.contact?.businessOwner || ''}
+                      onChange={(e) => handleChange('contact', 'businessOwner', e.target.value)}
+                    />
+                    <p className="text-xs text-gray-400 mt-1 font-['DM_Sans']">
+                      Used in Terms & Conditions and legal pages.
+                    </p>
+                  </div>
                 </>
               )}
 
@@ -211,6 +222,23 @@ export default function SiteSettingsManager() {
                       className={inputClass}
                       value={(settings.footer?.paymentMethods || []).join(', ')}
                       onChange={(e) => handlePaymentMethodsChange(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Newsletter Title</label>
+                    <input
+                      className={inputClass}
+                      value={settings.footer?.newsletterTitle || ''}
+                      onChange={(e) => handleChange('footer', 'newsletterTitle', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Newsletter Description</label>
+                    <textarea
+                      className={inputClass}
+                      rows={2}
+                      value={settings.footer?.newsletterDescription || ''}
+                      onChange={(e) => handleChange('footer', 'newsletterDescription', e.target.value)}
                     />
                   </div>
                 </>

@@ -11,6 +11,9 @@ const {
   resetPassword,
   verifyEmail,
   resendVerification,
+  changePassword,
+  toggleWishlist,
+  getWishlist,
 } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const { registerValidator, loginValidator } = require('../utils/validators');
@@ -35,7 +38,7 @@ router.get(
 );
 
 router.get('/google/failure', (req, res) => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
   res.redirect(`${clientUrl}/auth/google/callback?error=auth_failed`);
 });
 
@@ -50,5 +53,12 @@ router.post('/resend-verification', auth, resendVerification);
 // Password reset
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
+
+// Change password
+router.put('/change-password', auth, changePassword);
+
+// Wishlist
+router.post('/wishlist/toggle', auth, toggleWishlist);
+router.get('/wishlist', auth, getWishlist);
 
 module.exports = router;

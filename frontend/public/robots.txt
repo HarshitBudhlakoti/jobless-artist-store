@@ -3,4 +3,4 @@ Allow: /
 Disallow: /control-panel/
 Disallow: /api/
 
-Sitemap: https://jobless-artist-store.netlify.app/sitemap.xml
+Sitemap: https://www.joblessartist.in/sitemap.xml

@@ -124,14 +124,23 @@ const CustomOrderForm = () => {
     setError('');
 
     try {
+      const sizeMap = {
+        small: { width: 8, height: 10, unit: 'inches' },
+        medium: { width: 16, height: 20, unit: 'inches' },
+        large: { width: 24, height: 36, unit: 'inches' },
+        'extra-large': { width: 36, height: 48, unit: 'inches' },
+        custom: {
+          width: Number(formData.customWidth),
+          height: Number(formData.customHeight),
+          unit: 'inches',
+        },
+      };
+
       const payload = {
         orderType: formData.orderType,
         description: formData.description,
         referenceImages: formData.referenceImages,
-        size: formData.size,
-        customWidth: formData.customWidth,
-        customHeight: formData.customHeight,
-        sizeUnit: formData.sizeUnit,
+        size: sizeMap[formData.size] || { width: 16, height: 20, unit: 'inches' },
         medium: formData.medium,
         estimatedPrice: formData.estimatedPrice,
       };

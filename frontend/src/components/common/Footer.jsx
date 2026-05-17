@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import api from '../../api/axios';
 import {
   FaInstagram,
   FaPinterestP,
   FaFacebookF,
   FaTwitter,
+  FaYoutube,
 } from 'react-icons/fa';
 import {
   HiOutlineMail,
@@ -35,6 +37,7 @@ const SOCIAL_ICON_MAP = {
   pinterest: FaPinterestP,
   facebook: FaFacebookF,
   twitter: FaTwitter,
+  youtube: FaYoutube,
 };
 
 const DEFAULT_SOCIAL = [
@@ -49,18 +52,18 @@ export default function Footer() {
   const [email, setEmail] = useState('');
 
   // Build social links from settings
-  const socialLinks = settings?.socialLinks
+  let socialLinks = settings?.socialLinks
     ? Object.entries(settings.socialLinks)
-        .filter(([, url]) => url)
+        .filter(([, url]) => url && url !== '#')
         .map(([key, url]) => ({
           icon: SOCIAL_ICON_MAP[key] || FaInstagram,
           href: url,
           label: key.charAt(0).toUpperCase() + key.slice(1),
         }))
-    : DEFAULT_SOCIAL;
+    : [];
   if (socialLinks.length === 0) {
-    // show defaults if no links configured
-    socialLinks.push(...DEFAULT_SOCIAL);
+    // show defaults only if they have real URLs
+    socialLinks = DEFAULT_SOCIAL.filter((s) => s.href && s.href !== '#');
   }
 
   const brandDesc = settings?.footer?.brandDescription ||
@@ -68,7 +71,7 @@ export default function Footer() {
   const copyrightText = settings?.footer?.copyrightText || 'Jobless Artist. All rights reserved.';
   const paymentMethods = settings?.footer?.paymentMethods || ['Visa', 'Mastercard', 'UPI', 'Cashfree'];
 
-  const handleNewsletterSubmit = (e) => {
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       toast.error('Please enter your email');
@@ -78,8 +81,14 @@ export default function Footer() {
       toast.error('Please enter a valid email');
       return;
     }
-    toast.success('Thank you for subscribing!');
-    setEmail('');
+    try {
+      const { data } = await api.post('/contact/newsletter', { email });
+      toast.success(data.message || 'Thank you for subscribing!');
+      setEmail('');
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message || 'Something went wrong';
+      toast.error(msg);
+    }
   };
 
   return (
@@ -160,11 +169,10 @@ export default function Footer() {
           {/* Column 4: Newsletter */}
           <motion.div variants={staggerItem}>
             <h4 className="font-display text-lg font-semibold text-white">
-              Stay Inspired
+              {settings?.footer?.newsletterTitle || 'Stay Inspired'}
             </h4>
             <p className="mt-4 font-body text-sm text-cream/70">
-              Subscribe for new arrivals, exclusive offers, and behind-the-scenes peeks
-              into the creative process.
+              {settings?.footer?.newsletterDescription || 'Subscribe for new arrivals, exclusive offers, and behind-the-scenes peeks into the creative process.'}
             </p>
             <form onSubmit={handleNewsletterSubmit} className="mt-5">
               <div className="flex overflow-hidden rounded-lg border border-cream/20 focus-within:border-accent">

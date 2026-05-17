@@ -4,6 +4,10 @@ const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 
+// CLIENT_URL may contain comma-separated origins for CORS; use only the first for redirects/emails
+const getClientUrl = () =>
+  (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -44,7 +48,7 @@ const register = async (req, res, next) => {
       user.emailVerificationExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
       await user.save();
 
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const clientUrl = getClientUrl();
       const verifyUrl = `${clientUrl}/verify-email/${verifyToken}`;
 
       sendEmail({
@@ -156,7 +160,7 @@ const login = async (req, res, next) => {
 const googleAuthCallback = (req, res, next) => {
   try {
     const token = generateToken(req.user._id);
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     res.redirect(`${clientUrl}/auth/google/callback?token=${token}`);
   } catch (error) {
     next(error);
@@ -252,7 +256,7 @@ const forgotPassword = async (req, res, next) => {
 
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
     const html = `
@@ -402,7 +406,7 @@ const resendVerification = async (req, res, next) => {
     user.emailVerificationExpire = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     const verifyUrl = `${clientUrl}/verify-email/${verifyToken}`;
 
     await sendEmail({
@@ -427,6 +431,133 @@ const resendVerification = async (req, res, next) => {
   }
 };
 
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current password and new password',
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters',
+      });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: 'This account uses Google login. Password change is not available.',
+      });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect',
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Toggle product in wishlist
+// @route   POST /api/auth/wishlist/toggle
+// @access  Private
+const toggleWishlist = async (req, res, next) => {
+  try {
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a product ID',
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const index = user.wishlist.indexOf(productId);
+
+    if (index > -1) {
+      user.wishlist.pull(productId);
+    } else {
+      user.wishlist.push(productId);
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: index > -1 ? 'Removed from wishlist' : 'Added to wishlist',
+      data: user.wishlist,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get user wishlist
+// @route   GET /api/auth/wishlist
+// @access  Private
+const getWishlist = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).populate(
+      'wishlist',
+      'title price discountPrice images isActive'
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user.wishlist,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -437,4 +568,7 @@ module.exports = {
   resetPassword,
   verifyEmail,
   resendVerification,
+  changePassword,
+  toggleWishlist,
+  getWishlist,
 };

@@ -749,7 +749,7 @@ const Checkout = () => {
                         className="text-sm font-semibold text-[#2C2C2C] flex-shrink-0"
                         style={{ fontFamily: "'DM Sans', sans-serif" }}
                       >
-                        {formatPrice(item.price * item.quantity)}
+                        {formatPrice((item.discountPrice || item.price) * item.quantity)}
                       </p>
                     </div>
                   ))}

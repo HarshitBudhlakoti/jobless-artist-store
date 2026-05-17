@@ -8,6 +8,7 @@ import SEO from '../components/common/SEO';
 import ProductDetail from '../components/shop/ProductDetail';
 import ProductCard from '../components/shop/ProductCard';
 import api from '../api/axios';
+import useAuth from '../hooks/useAuth';
 
 /* Loading skeleton for product page */
 const ProductPageSkeleton = () => (
@@ -66,6 +67,7 @@ const ProductPageSkeleton = () => (
 
 const ProductPage = () => {
   const { id } = useParams();
+  const { user: authUser } = useAuth();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -177,13 +179,7 @@ const ProductPage = () => {
           };
         });
       } catch {
-        // If API fails, add review locally anyway for UX
-        const localReview = {
-          ...reviewData,
-          _id: `local-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-        };
-        setReviews((prev) => [localReview, ...prev]);
+        // Do not add fake review on failure
       } finally {
         setIsSubmittingReview(false);
       }
@@ -288,8 +284,9 @@ const ProductPage = () => {
               <ProductDetail
                 product={product}
                 reviews={reviews}
-                onReviewSubmit={handleReviewSubmit}
+                onReviewSubmit={authUser ? handleReviewSubmit : null}
                 isSubmittingReview={isSubmittingReview}
+                isAuthenticated={!!authUser}
               />
             </div>
           </div>

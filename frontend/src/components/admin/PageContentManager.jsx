@@ -11,10 +11,10 @@ const TABS = [
   { key: 'policies', label: 'Policies' },
 ];
 
-const HOMEPAGE_SECTIONS = ['hero', 'artistStory', 'customOrderCTA'];
+const HOMEPAGE_SECTIONS = ['hero', 'artistStory', 'customOrderCTA', 'categoriesGrid'];
 const ABOUT_SECTIONS = ['aboutPage'];
 const CONTACT_SECTIONS = ['contactFAQ'];
-const POLICY_SECTIONS = ['shippingPolicy', 'termsAndConditions', 'privacyPolicy'];
+const POLICY_SECTIONS = ['shippingPolicy', 'termsAndConditions', 'privacyPolicy', 'refundPolicy'];
 
 const SECTION_LABELS = {
   hero: 'Hero Section',
@@ -26,6 +26,7 @@ const SECTION_LABELS = {
   shippingPolicy: 'Shipping Policy',
   termsAndConditions: 'Terms & Conditions',
   privacyPolicy: 'Privacy Policy',
+  refundPolicy: 'Refund & Returns Policy',
 };
 
 function getSectionsForTab(tab) {
@@ -293,8 +294,6 @@ function CustomOrderCTAEditor({ content, setContent }) {
 
 function CategoriesGridEditor({ content, setContent }) {
   const update = (field, value) => setContent({ ...content, [field]: value });
-  const categories = content.categories || [];
-  const setCategories = (val) => setContent({ ...content, categories: val });
 
   return (
     <div className="space-y-4">
@@ -302,17 +301,11 @@ function CategoriesGridEditor({ content, setContent }) {
         <label className={labelClass}>Section Title</label>
         <input className={inputClass} value={content.sectionTitle || ''} onChange={(e) => update('sectionTitle', e.target.value)} />
       </div>
-      <ListEditor
-        items={categories}
-        setItems={setCategories}
-        fields={[
-          { key: 'name', label: 'Name' },
-          { key: 'slug', label: 'Slug' },
-          { key: 'description', label: 'Description' },
-          { key: 'gradient', label: 'Gradient CSS' },
-        ]}
-        label="Categories"
-      />
+      <div>
+        <label className={labelClass}>Section Description</label>
+        <input className={inputClass} value={content.description || ''} onChange={(e) => update('description', e.target.value)} />
+      </div>
+      <p className="text-xs text-gray-500 italic">Categories are managed via the Category Manager. Only the section title and description can be edited here.</p>
     </div>
   );
 }
@@ -505,6 +498,7 @@ function SectionEditor({ sectionKey, content, setContent }) {
     case 'shippingPolicy':
     case 'termsAndConditions':
     case 'privacyPolicy':
+    case 'refundPolicy':
       return <PolicyEditor content={content} setContent={setContent} />;
     default:
       return <p className="text-sm text-gray-500">No editor available for this section.</p>;

@@ -38,12 +38,11 @@ export default function AdminUserManager() {
       if (roleFilter) params.role = roleFilter;
       if (search.trim()) params.search = search;
 
-      const { data } = await api.get('/auth/admin/users', { params });
+      const { data } = await api.get('/admin/users', { params });
       setUsers(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
       setTotal(data.pagination?.total || data.data?.length || 0);
     } catch (err) {
-      // Endpoint may not exist yet - show mock data instructions
       if (err.status === 404) {
         setUsers([]);
         setTotal(0);
@@ -70,7 +69,7 @@ export default function AdminUserManager() {
   const toggleRole = async (user) => {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     try {
-      await api.put(`/auth/admin/users/${user._id}`, { role: newRole });
+      await api.put(`/admin/users/${user._id}/role`, { role: newRole });
       toast.success(`${user.name} is now ${newRole}`);
       fetchUsers();
     } catch {
@@ -124,7 +123,7 @@ export default function AdminUserManager() {
             <FiUsers className="w-12 h-12 text-gray-300 mb-3" />
             <p className="text-[#6B6B6B] font-['DM_Sans']">No users found</p>
             <p className="text-xs text-[#6B6B6B] mt-1 font-['DM_Sans']">
-              The admin users endpoint may not be available yet. Ensure GET /api/auth/admin/users is implemented.
+              Try adjusting your search or filters.
             </p>
           </div>
         ) : (

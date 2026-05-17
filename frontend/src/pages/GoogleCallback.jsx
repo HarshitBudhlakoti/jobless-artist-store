@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 
@@ -10,6 +11,14 @@ export default function GoogleCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      const error = searchParams.get('error');
+
+      if (error) {
+        toast.error('Google sign-in failed. Please try again.');
+        navigate('/login', { replace: true });
+        return;
+      }
+
       const token = searchParams.get('token');
 
       if (!token) {

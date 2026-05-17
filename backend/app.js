@@ -13,6 +13,22 @@ const passport = require('./config/passport');
 const errorHandler = require('./middleware/errorHandler');
 
 // Connect to database
+// Validate required environment variables on startup
+const requiredEnvVars = [
+  'MONGODB_URI',
+  'JWT_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+  'EMAIL_USER',
+  'EMAIL_PASS',
+];
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+if (missingVars.length) {
+  console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  process.exit(1);
+}
+
 connectDB();
 
 const app = express();

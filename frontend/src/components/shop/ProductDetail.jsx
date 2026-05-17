@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiShoppingCart, FiStar, FiChevronDown, FiMinus, FiPlus } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import useCart from '../../hooks/useCart';
+import useAuth from '../../hooks/useAuth';
 import { formatPrice } from '../../utils/helpers';
 import ImageZoom from './ImageZoom';
 
@@ -80,7 +82,7 @@ const RatingBars = ({ reviews = [] }) => {
 /* Individual review card */
 const ReviewCard = ({ review }) => {
   const {
-    userName = 'Anonymous',
+    user,
     rating = 5,
     comment = '',
     createdAt,
@@ -97,12 +99,19 @@ const ReviewCard = ({ review }) => {
   return (
     <div className="py-5 border-b border-[#2C2C2C]/6 last:border-b-0">
       <div className="flex items-start justify-between mb-2">
-        <div>
+        <div className="flex items-center gap-2">
+          {user?.avatar && (
+            <img
+              src={user.avatar}
+              alt={user.name || 'Anonymous'}
+              className="w-7 h-7 rounded-full object-cover"
+            />
+          )}
           <p
             className="font-semibold text-[#2C2C2C] text-sm"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
-            {userName}
+            {user?.name || 'Anonymous'}
           </p>
           {formattedDate && (
             <p
@@ -260,10 +269,11 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   const { addToCart, isInCart } = useCart();
+  const { isInWishlist, toggleWishlist, isAuthenticated } = useAuth();
+  const isWishlisted = isInWishlist(_id);
 
   const isSoldOut = stock === 0;
   const alreadyInCart = isInCart(_id);
@@ -485,7 +495,13 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
 
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  toast('Login to add to wishlist');
+                  return;
+                }
+                toggleWishlist(_id);
+              }}
               className={`flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                 isWishlisted
                   ? 'bg-[#C75B39]/5 border-[#C75B39] text-[#C75B39]'
@@ -630,12 +646,33 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
                 )}
 
                 {/* Review form */}
-                <div
-                  className="p-6 bg-[#FAF7F2] rounded-2xl"
-                  style={{ boxShadow: '0 1px 4px rgba(44,44,44,0.04)' }}
-                >
-                  <ReviewForm onSubmit={onReviewSubmit} isSubmitting={isSubmittingReview} />
-                </div>
+                {isAuthenticated && onReviewSubmit ? (
+                  <div
+                    className="p-6 bg-[#FAF7F2] rounded-2xl"
+                    style={{ boxShadow: '0 1px 4px rgba(44,44,44,0.04)' }}
+                  >
+                    <ReviewForm onSubmit={onReviewSubmit} isSubmitting={isSubmittingReview} />
+                  </div>
+                ) : (
+                  <div
+                    className="p-6 bg-[#FAF7F2] rounded-2xl text-center"
+                    style={{ boxShadow: '0 1px 4px rgba(44,44,44,0.04)' }}
+                  >
+                    <p
+                      className="text-sm text-[#2C2C2C]/60 mb-3"
+                      style={{ fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      Want to share your thoughts on this artwork?
+                    </p>
+                    <a
+                      href="/login"
+                      className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:brightness-110"
+                      style={{ backgroundColor: '#C75B39', fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      Login to write a review
+                    </a>
+                  </div>
+                )}
               </div>
             </TabPanel>
 
@@ -692,7 +729,7 @@ const ProductDetail = ({ product, reviews = [], onReviewSubmit, isSubmittingRevi
                     <li className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#D4A857] mt-1.5 flex-shrink-0" />
                       <span>
-                        Contact us at support@joblessartist.com for return requests.
+                        Contact us at joblessartist99@gmail.com for return requests.
                       </span>
                     </li>
                   </ul>

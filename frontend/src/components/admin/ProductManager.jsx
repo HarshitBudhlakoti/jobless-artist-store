@@ -662,7 +662,7 @@ export default function ProductManager() {
       if (statusFilter === 'active') params.isActive = 'true';
       else if (statusFilter === 'inactive') params.isActive = 'false';
 
-      const { data } = await api.get('/products', params);
+      const { data } = await api.get('/products', { params });
       const productList = data.data || [];
 
       setProducts(productList);

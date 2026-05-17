@@ -34,6 +34,7 @@ passport.use(
 
         if (user) {
           user.googleId = profile.id;
+          user.emailVerified = true;
           if (!user.avatar && profile.photos && profile.photos.length > 0) {
             user.avatar = profile.photos[0].value;
           }
@@ -45,6 +46,7 @@ passport.use(
           name: profile.displayName,
           email: profile.emails[0].value,
           googleId: profile.id,
+          emailVerified: true,
           avatar:
             profile.photos && profile.photos.length > 0
               ? profile.photos[0].value

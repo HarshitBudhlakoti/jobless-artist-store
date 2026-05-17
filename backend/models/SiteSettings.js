@@ -12,6 +12,7 @@ const siteSettingsSchema = new mongoose.Schema(
         maxlength: 500,
       },
       workingHours: { type: String, default: 'Mon - Sat: 10:00 AM - 7:00 PM', maxlength: 200 },
+      businessOwner: { type: String, default: 'Chetna Palariya', maxlength: 200 },
     },
     socialLinks: {
       instagram: { type: String, default: '', maxlength: 500 },
@@ -32,6 +33,16 @@ const siteSettingsSchema = new mongoose.Schema(
         type: String,
         default: 'Jobless Artist. All rights reserved.',
         maxlength: 200,
+      },
+      newsletterTitle: {
+        type: String,
+        default: 'Stay Connected',
+        maxlength: 200,
+      },
+      newsletterDescription: {
+        type: String,
+        default: 'Subscribe for new arrivals, exclusive offers, and behind-the-scenes peeks into the creative process.',
+        maxlength: 500,
       },
       paymentMethods: {
         type: [String],

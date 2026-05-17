@@ -2,80 +2,20 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import AnimatedPage from '../components/common/AnimatedPage';
 import SEO from '../components/common/SEO';
-import { usePageContent } from '../hooks/useSiteContent';
+import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
-const DEFAULT_LAST_UPDATED = '25 February 2026';
+const DEFAULT_LAST_UPDATED = '17-05-2026 14:52:02';
 
 const DEFAULT_SECTIONS = [
   {
-    title: '1. Introduction',
+    title: '1. Agreement',
     content:
-      'Welcome to Jobless Artist (www.joblessartist.in). These Terms and Conditions govern your use of our website and the purchase of products from us. By accessing or using our website, you agree to be bound by these terms. If you do not agree with any part of these terms, please do not use our website.',
+      'These Terms and Conditions, along with privacy policy or other terms (\u201CTerms\u201D) constitute a binding agreement by and between CHETNA PALARIYA, ( \u201CWebsite Owner\u201D or \u201Cwe\u201D or \u201Cus\u201D or \u201Cour\u201D) and you (\u201Cyou\u201D or \u201Cyour\u201D) and relate to your use of our website, goods (as applicable) or services (as applicable) (collectively, \u201CServices\u201D).\n\nBy using our website and availing the Services, you agree that you have read and accepted these Terms (including the Privacy Policy). We reserve the right to modify these Terms at any time and without assigning any reason. It is your responsibility to periodically review these Terms to stay informed of updates.',
   },
   {
-    title: '2. Business Information',
+    title: '2. Terms of Use',
     content:
-      'Jobless Artist is a sole proprietorship operated by Chetna Palariya, located at Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139, India. For any queries, you can reach us at joblessartist99@gmail.com or +91 82185 85651.',
-  },
-  {
-    title: '3. Products & Services',
-    content:
-      'Jobless Artist sells handcrafted artworks including paintings, custom commissions, and art-related products. All product images on the website are representative. Due to the handmade nature of our products, slight variations in colour, texture, and finish may occur. These variations are not considered defects and are part of the unique charm of handcrafted art.',
-  },
-  {
-    title: '4. Pricing & Payment',
-    content:
-      'All prices listed on the website are in Indian Rupees (\u20B9) and are inclusive of applicable taxes unless otherwise stated. We reserve the right to change prices at any time without prior notice. Payments are processed securely through Cashfree payment gateway, which supports UPI, credit/debit cards, net banking, and wallets. For custom orders, a 50% advance payment is required at the time of order, with the remaining 50% due upon completion before dispatch.',
-  },
-  {
-    title: '5. Orders & Confirmation',
-    content:
-      'When you place an order, you will receive an order confirmation via email. This confirmation does not guarantee acceptance of your order. We reserve the right to refuse or cancel any order for reasons including but not limited to: product unavailability, errors in pricing or product information, or suspected fraudulent activity.',
-  },
-  {
-    title: '6. Shipping & Delivery',
-    content:
-      'We ship across India and internationally. Domestic delivery within India typically takes 5\u20137 business days. International delivery takes 15\u201321 business days. Shipping is free on orders above \u20B93,000. A flat \u20B975 shipping charge applies to orders below \u20B93,000. For full details, please refer to our Shipping Policy page.',
-  },
-  {
-    title: '7. Cancellation, Returns & Refunds',
-    content:
-      'Orders can be cancelled anytime before dispatch. Returns are accepted within 7 days of delivery only if the product has physical damage. Refunds are processed after the returned product is received and inspected. The resolution (refund, replacement, or store credit) will be discussed with the customer. For full details, please refer to our Refunds & Cancellation Policy page.',
-  },
-  {
-    title: '8. Intellectual Property',
-    content:
-      'All content on this website, including but not limited to images, artwork, text, graphics, logos, and designs, is the intellectual property of Jobless Artist and is protected under applicable copyright and intellectual property laws. You may not reproduce, distribute, modify, or use any content from this website without prior written permission from us. Purchasing an artwork grants you ownership of the physical piece but does not transfer copyright or reproduction rights.',
-  },
-  {
-    title: '9. User Accounts',
-    content:
-      'When you create an account on our website, you are responsible for maintaining the confidentiality of your login credentials and for all activities under your account. You must provide accurate and complete information during registration. We reserve the right to suspend or terminate accounts that violate these terms or engage in fraudulent activity.',
-  },
-  {
-    title: '10. Limitation of Liability',
-    content:
-      'Jobless Artist shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the website or purchase of products. Our total liability for any claim shall not exceed the amount paid by you for the specific product in question. We are not responsible for delays or failures in delivery caused by third-party logistics providers, natural disasters, or other circumstances beyond our control.',
-  },
-  {
-    title: '11. Privacy',
-    content:
-      'We respect your privacy and handle your personal information with care. Any personal data collected through the website (name, email, address, phone number, payment details) is used solely for processing orders, communicating with you, and improving our services. We do not sell or share your personal information with third parties except as necessary for order fulfilment (e.g., shipping partners, payment gateway). For full details, please refer to our Privacy Policy page.',
-  },
-  {
-    title: '12. Governing Law',
-    content:
-      'These Terms and Conditions are governed by and construed in accordance with the laws of India. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts in Haldwani, Nainital, Uttarakhand, India.',
-  },
-  {
-    title: '13. Changes to Terms',
-    content:
-      'We reserve the right to update or modify these Terms and Conditions at any time without prior notice. The updated terms will be posted on this page with the revised date. Your continued use of the website after any changes constitutes acceptance of the modified terms.',
-  },
-  {
-    title: '14. Contact Us',
-    content:
-      'If you have any questions or concerns about these Terms and Conditions, please contact us:\n\nJobless Artist\nProprietor: Chetna Palariya\nAddress: Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139\nEmail: joblessartist99@gmail.com\nPhone: +91 82185 85651\nWebsite: www.joblessartist.in',
+      'The use of this website or availing of our Services is subject to the following terms of use:\n\n\u2022 To access and use the Services, you agree to provide true, accurate and complete information to us during and after registration, and you shall be responsible for all acts done through the use of your registered account.\n\n\u2022 Neither we nor any third parties provide any warranty or guarantee as to the accuracy, timeliness, performance, completeness or suitability of the information and materials offered on this website or through the Services, for any specific purpose. You acknowledge that such information and materials may contain inaccuracies or errors and we expressly exclude liability for any such inaccuracies or errors to the fullest extent permitted by law.\n\n\u2022 Your use of our Services and the website is solely at your own risk and discretion. You are required to independently assess and ensure that the Services meet your requirements.\n\n\u2022 The contents of the Website and the Services are proprietary to Us and you will not have any authority to claim any intellectual property rights, title, or interest in its contents.\n\n\u2022 You acknowledge that unauthorized use of the Website or the Services may lead to action against you as per these Terms or applicable laws.\n\n\u2022 You agree to pay us the charges associated with availing the Services.\n\n\u2022 You agree not to use the website and/ or Services for any purpose that is unlawful, illegal or forbidden by these Terms, or Indian or local laws that might apply to you.\n\n\u2022 You agree and acknowledge that website and the Services may contain links to other third party websites. On accessing these links, you will be governed by the terms of use, privacy policy and such other policies of such third party websites.\n\n\u2022 You understand that upon initiating a transaction for availing the Services you are entering into a legally binding and enforceable contract with the us for the Services.\n\n\u2022 You shall be entitled to claim a refund of the payment made by you in case we are not able to provide the Service. The timelines for such return and refund will be according to the specific Service you have availed or within the time period provided in our policies (as applicable). In case you do not raise a refund claim within the stipulated time, than this would make you ineligible for a refund.\n\n\u2022 Notwithstanding anything contained in these Terms, the parties shall not be liable for any failure to perform an obligation under these Terms if performance is prevented or delayed by a force majeure event.\n\n\u2022 These Terms and any dispute or claim relating to it, or its enforceability, shall be governed by and construed in accordance with the laws of India.\n\n\u2022 All disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts in Haldwani, Uttarakhand.\n\n\u2022 All concerns or communications relating to these Terms must be communicated to us using the contact information provided on this website.',
   },
 ];
 
@@ -87,7 +27,19 @@ const DEFAULT_TC = {
 
 const TermsAndConditions = () => {
   const { content } = usePageContent('termsAndConditions', DEFAULT_TC);
-  const sections = content?.sections || DEFAULT_TC.sections;
+  const { data: settings } = useSiteSettings();
+  const contactEmail = settings?.contact?.email || 'joblessartist99@gmail.com';
+  const contactPhone = settings?.contact?.phone || '+91 82185 85651';
+  const contactAddress = settings?.contact?.address || 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139';
+  const businessOwner = settings?.contact?.businessOwner || 'Chetna Palariya';
+  const sections = (content?.sections || DEFAULT_TC.sections).map((s) => ({
+    ...s,
+    content: s.content
+      .replace(/joblessartist99@gmail\.com/g, contactEmail)
+      .replace(/\+91 82185 85651/g, contactPhone)
+      .replace(/Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139/g, contactAddress)
+      .replace(/Chetna Palariya/g, businessOwner),
+  }));
   const lastUpdated = content?.lastUpdated || DEFAULT_TC.lastUpdated;
 
   return (

@@ -16,7 +16,6 @@ const LoginForm = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -38,10 +37,10 @@ const LoginForm = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -205,23 +204,8 @@ const LoginForm = () => {
           </AnimatePresence>
         </div>
 
-        {/* Remember me & Forgot password */}
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="rememberMe"
-              checked={formData.rememberMe}
-              onChange={handleChange}
-              className="w-4 h-4 rounded border-gray-300 accent-[#C75B39] cursor-pointer"
-            />
-            <span
-              className="text-sm"
-              style={{ fontFamily: "'DM Sans', sans-serif", color: '#6B6B6B' }}
-            >
-              Remember me
-            </span>
-          </label>
+        {/* Forgot password */}
+        <div className="flex items-center justify-end">
           <Link
             to="/forgot-password"
             className="text-sm font-medium hover:underline transition-colors"

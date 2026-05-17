@@ -2,7 +2,9 @@ import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import useCart from '../../hooks/useCart';
+import useAuth from '../../hooks/useAuth';
 import { formatPrice, placeholderGradient, truncateText } from '../../utils/helpers';
 
 const ProductCard = ({ product, onQuickView }) => {
@@ -17,10 +19,11 @@ const ProductCard = ({ product, onQuickView }) => {
     isFeatured = false,
   } = product || {};
 
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart, isInCart } = useCart();
+  const { isInWishlist, toggleWishlist, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const isWishlisted = isInWishlist(_id);
 
   const gradient = placeholderGradient(title + _id);
   const isSoldOut = stock === 0;
@@ -41,9 +44,13 @@ const ProductCard = ({ product, onQuickView }) => {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsWishlisted((prev) => !prev);
+      if (!isAuthenticated) {
+        toast('Login to add to wishlist');
+        return;
+      }
+      toggleWishlist(_id);
     },
-    []
+    [isAuthenticated, toggleWishlist, _id]
   );
 
   const handleQuickView = useCallback(

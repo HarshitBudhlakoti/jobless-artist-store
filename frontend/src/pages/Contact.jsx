@@ -60,20 +60,26 @@ const SUBJECT_OPTIONS = [
 const DEFAULT_CONTACT_DETAILS = [
   {
     icon: FiMail,
-    label: 'Email',
+    label: 'E-Mail ID',
     value: 'joblessartist99@gmail.com',
     href: 'mailto:joblessartist99@gmail.com',
   },
   {
     icon: FiPhone,
-    label: 'Phone',
-    value: '+91 82185 85651',
+    label: 'Telephone No',
+    value: '8218585651',
     href: 'tel:+918218585651',
   },
   {
     icon: FiMapPin,
-    label: 'Studio',
-    value: 'Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139',
+    label: 'Registered Address',
+    value: 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139',
+    href: null,
+  },
+  {
+    icon: FiMapPin,
+    label: 'Operational Address',
+    value: 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139',
     href: null,
   },
   {
@@ -84,7 +90,14 @@ const DEFAULT_CONTACT_DETAILS = [
   },
 ];
 
-const socialLinks = [
+const SOCIAL_ICON_MAP = {
+  instagram: FiInstagram,
+  twitter: FiTwitter,
+  pinterest: FaPinterestP,
+  youtube: FiYoutube,
+};
+
+const DEFAULT_SOCIAL_LINKS = [
   { icon: FiInstagram, label: 'Instagram', href: '#' },
   { icon: FiTwitter, label: 'Twitter', href: '#' },
   { icon: FaPinterestP, label: 'Pinterest', href: '#' },
@@ -222,6 +235,20 @@ const Contact = () => {
     : DEFAULT_CONTACT_DETAILS;
 
   const faqData = faqContent?.items || DEFAULT_FAQ;
+
+  // Build social links from site settings
+  const socialLinks = settings?.socialLinks
+    ? Object.entries(settings.socialLinks)
+        .filter(([, url]) => url && url !== '#')
+        .map(([key, url]) => ({
+          icon: SOCIAL_ICON_MAP[key] || FiInstagram,
+          href: url,
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+        }))
+    : [];
+  const displaySocialLinks = socialLinks.length > 0
+    ? socialLinks
+    : DEFAULT_SOCIAL_LINKS.filter((s) => s.href && s.href !== '#');
 
   const pageRef = useRef(null);
   const formRef = useRef(null);
@@ -599,8 +626,14 @@ const Contact = () => {
                   className="text-xl md:text-2xl font-bold mb-6"
                   style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
                 >
-                  Contact Info
+                  Contact Us
                 </h2>
+                <p
+                  className="text-sm mb-4"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}
+                >
+                  Merchant Legal Entity Name: <strong style={{ color: '#2C2C2C' }}>CHETNA PALARIYA</strong>
+                </p>
                 <div className="space-y-5">
                   {contactDetails.map((item, i) => {
                     const Icon = item.icon;
@@ -647,7 +680,7 @@ const Contact = () => {
                     Follow Us
                   </p>
                   <div className="flex items-center gap-3">
-                    {socialLinks.map((social, i) => {
+                    {displaySocialLinks.map((social, i) => {
                       const SIcon = social.icon;
                       return (
                         <a

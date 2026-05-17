@@ -3,6 +3,9 @@ const Product = require('../models/Product');
 const cashfree = require('../utils/cashfreeService');
 const sendEmail = require('../utils/sendEmail');
 const emailTemplates = require('../utils/emailTemplates');
+
+const getClientUrl = () =>
+  (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
 const SiteSettings = require('../models/SiteSettings');
 const {
   calcIndiaPostCost,
@@ -22,26 +25,23 @@ const createPaymentOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Shipping address is required' });
     }
 
-    // Atomic stock decrement (same pattern as orderController)
+    const phone = shippingAddress.phone || req.user.phone;
+    if (!phone) {
+      return res.status(400).json({ success: false, message: 'Phone number is required for payment processing' });
+    }
+
+    // Validate stock availability (don't decrement yet — only after payment succeeds)
     let productSubtotal = 0;
     const orderItems = [];
-    const stockUpdates = [];
 
     for (const item of items) {
-      const product = await Product.findOneAndUpdate(
-        { _id: item.product, isActive: true, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity, soldCount: item.quantity } },
-        { new: true }
-      );
+      const product = await Product.findOne({
+        _id: item.product,
+        isActive: true,
+        stock: { $gte: item.quantity },
+      });
 
       if (!product) {
-        // Rollback any stock decrements already made
-        for (const update of stockUpdates) {
-          await Product.findByIdAndUpdate(update.product, {
-            $inc: { stock: update.quantity, soldCount: -update.quantity },
-          });
-        }
-
         const check = await Product.findById(item.product);
         if (!check) {
           return res.status(404).json({ success: false, message: 'Product not found' });
@@ -54,8 +54,6 @@ const createPaymentOrder = async (req, res, next) => {
           message: `Insufficient stock for ${check.title}. Available: ${check.stock}`,
         });
       }
-
-      stockUpdates.push({ product: product._id, quantity: item.quantity });
 
       const itemPrice = product.discountPrice || product.price;
       productSubtotal += itemPrice * item.quantity;
@@ -90,12 +88,6 @@ const createPaymentOrder = async (req, res, next) => {
       } else {
         const cost = parseFloat(shippingCost) || 0;
         if (cost < 0 || cost > 2000) {
-          // Rollback stock
-          for (const update of stockUpdates) {
-            await Product.findByIdAndUpdate(update.product, {
-              $inc: { stock: update.quantity, soldCount: -update.quantity },
-            });
-          }
           return res.status(400).json({ success: false, message: 'Invalid shipping cost' });
         }
         verifiedShippingCost = cost;
@@ -125,8 +117,8 @@ const createPaymentOrder = async (req, res, next) => {
         customerId: req.user._id.toString(),
         customerName: shippingAddress.fullName || req.user.name,
         customerEmail: shippingAddress.email || req.user.email,
-        customerPhone: shippingAddress.phone || req.user.phone || '9999999999',
-        returnUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/verify?order_id=${cfOrderId}`,
+        customerPhone: shippingAddress.phone || req.user.phone,
+        returnUrl: `${getClientUrl()}/checkout/verify?order_id=${cfOrderId}`,
       },
     });
 
@@ -180,26 +172,63 @@ const verifyPayment = async (req, res, next) => {
     const cfStatus = await cashfree.getOrderStatus(cfOrderId);
 
     if (cfStatus.order_status === 'PAID') {
-      order.paymentStatus = 'paid';
-      order.paymentId = cfStatus.cf_order_id?.toString() || cfOrderId;
-      await order.save();
+      // Atomically mark as paid only if not already paid (prevents double stock decrement)
+      const paymentId = cfStatus.cf_order_id?.toString() || cfOrderId;
+      const updated = await Order.findOneAndUpdate(
+        { _id: order._id, paymentStatus: { $ne: 'paid' } },
+        { $set: { paymentStatus: 'paid', paymentId } },
+        { new: true }
+      );
+
+      if (!updated) {
+        // Already processed by webhook — return the existing order
+        const populatedOrder = await Order.findById(order._id)
+          .populate('user', 'name email')
+          .populate('items.product', 'title images price');
+        return res.json({ success: true, data: populatedOrder });
+      }
+
+      // Only now decrement stock — we are the sole winner of the race
+      let stockIssue = false;
+      for (const item of updated.items) {
+        const decremented = await Product.findOneAndUpdate(
+          { _id: item.product, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity, soldCount: item.quantity } },
+          { new: true }
+        );
+        if (!decremented) {
+          // Stock insufficient after payment — flag for admin and stop
+          stockIssue = true;
+          await Order.findByIdAndUpdate(order._id, {
+            $set: { notes: 'ATTENTION: Stock was insufficient after payment. Manual review needed.' },
+          });
+          break;
+        }
+      }
 
       const populatedOrder = await Order.findById(order._id)
         .populate('user', 'name email')
         .populate('items.product', 'title images price');
 
       // Fire-and-forget email notifications
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const clientUrl = getClientUrl();
       try {
         const userName = populatedOrder.user?.name || 'Customer';
         const userEmail = populatedOrder.user?.email;
 
-        // Payment confirmation to user
+        // Order confirmation to user
         if (userEmail) {
-          const emailData = emailTemplates.paymentConfirmed({
+          const orderItems = populatedOrder.items.map((item) => ({
+            title: item.product?.title || 'Art piece',
+            quantity: item.quantity,
+            price: item.price,
+          }));
+          const emailData = emailTemplates.orderPlaced({
             userName,
             orderId: order._id.toString(),
+            items: orderItems,
             totalAmount: order.totalAmount,
+            shippingAddress: order.shippingAddress,
             clientUrl,
           });
           sendEmail({ to: userEmail, ...emailData }).catch(() => {});
@@ -226,16 +255,10 @@ const verifyPayment = async (req, res, next) => {
       return res.json({ success: true, data: populatedOrder });
     }
 
-    // Payment not successful — rollback stock
+    // Payment not successful
     if (['EXPIRED', 'TERMINATED', 'CANCELLED'].includes(cfStatus.order_status)) {
       order.paymentStatus = 'failed';
       await order.save();
-
-      for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: item.quantity, soldCount: -item.quantity },
-        });
-      }
 
       return res.status(400).json({
         success: false,
@@ -286,10 +309,30 @@ const webhookHandler = async (req, res, next) => {
     }
 
     if (eventType === 'PAYMENT_SUCCESS_WEBHOOK') {
-      if (order.paymentStatus !== 'paid') {
-        order.paymentStatus = 'paid';
-        order.paymentId = event.data?.payment?.cf_payment_id?.toString() || cfOrderId;
-        await order.save();
+      // Atomically mark as paid only if not already paid (prevents double stock decrement)
+      const paymentId = event.data?.payment?.cf_payment_id?.toString() || cfOrderId;
+      const updated = await Order.findOneAndUpdate(
+        { _id: order._id, paymentStatus: { $ne: 'paid' } },
+        { $set: { paymentStatus: 'paid', paymentId } },
+        { new: true }
+      );
+
+      if (updated) {
+        // Only now decrement stock — we are the sole winner of the race
+        for (const item of updated.items) {
+          const decremented = await Product.findOneAndUpdate(
+            { _id: item.product, stock: { $gte: item.quantity } },
+            { $inc: { stock: -item.quantity, soldCount: item.quantity } },
+            { new: true }
+          );
+          if (!decremented) {
+            // Stock insufficient after payment — flag for admin and stop
+            await Order.findByIdAndUpdate(order._id, {
+              $set: { notes: 'ATTENTION: Stock was insufficient after payment. Manual review needed.' },
+            });
+            break;
+          }
+        }
       }
     } else if (
       eventType === 'PAYMENT_FAILED_WEBHOOK' ||
@@ -298,13 +341,6 @@ const webhookHandler = async (req, res, next) => {
       if (order.paymentStatus !== 'paid' && order.paymentStatus !== 'failed') {
         order.paymentStatus = 'failed';
         await order.save();
-
-        // Rollback stock
-        for (const item of order.items) {
-          await Product.findByIdAndUpdate(item.product, {
-            $inc: { stock: item.quantity, soldCount: -item.quantity },
-          });
-        }
       }
     }
 

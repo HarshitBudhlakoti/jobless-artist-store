@@ -13,7 +13,7 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
   { value: 'price_asc', label: 'Price: Low to High' },
   { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'popular', label: 'Most Popular' },
+  { value: 'popularity', label: 'Most Popular' },
 ];
 
 const PRODUCTS_PER_PAGE = 12;
@@ -58,16 +58,8 @@ const Shop = () => {
       if (filters.size) queryParams.size = filters.size;
       if (filters.search) queryParams.search = filters.search;
 
-      // Map sort values to API params
-      if (filters.sort === 'price_asc') {
-        queryParams.sort = 'price';
-      } else if (filters.sort === 'price_desc') {
-        queryParams.sort = '-price';
-      } else if (filters.sort === 'popular') {
-        queryParams.sort = '-averageRating';
-      } else {
-        queryParams.sort = '-createdAt';
-      }
+      // Pass sort value directly to backend
+      queryParams.sort = filters.sort || 'newest';
 
       const res = await api.get('/products', { params: queryParams });
       const data = res.data;

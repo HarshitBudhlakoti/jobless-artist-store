@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiTruck, FiPackage, FiGlobe, FiMapPin, FiClock, FiDollarSign } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
 import SEO from '../components/common/SEO';
-import { usePageContent } from '../hooks/useSiteContent';
+import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
 const SHIPPING_ICONS = [FiTruck, FiClock, FiMapPin, FiGlobe, FiPackage, FiDollarSign];
 
@@ -74,9 +74,17 @@ const DEFAULT_POLICY = {
 
 const ShippingPolicy = () => {
   const { content } = usePageContent('shippingPolicy', DEFAULT_POLICY);
+  const { data: settings } = useSiteSettings();
+  const contactEmail = settings?.contact?.email || 'joblessartist99@gmail.com';
+  const contactPhone = settings?.contact?.phone || '+91 82185 85651';
   const sections = (content?.sections || DEFAULT_POLICY.sections).map((s, i) => ({
     ...s,
     icon: SHIPPING_ICONS[i] || FiTruck,
+    content: s.content.map((item) =>
+      item
+        .replace('joblessartist99@gmail.com', contactEmail)
+        .replace('+91 82185 85651', contactPhone)
+    ),
   }));
 
   return (

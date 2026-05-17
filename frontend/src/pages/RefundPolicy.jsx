@@ -3,74 +3,63 @@ import { Link } from 'react-router-dom';
 import { FiXCircle, FiRotateCcw, FiAlertCircle, FiCheckCircle, FiPackage, FiMail } from 'react-icons/fi';
 import AnimatedPage from '../components/common/AnimatedPage';
 import SEO from '../components/common/SEO';
+import { usePageContent, useSiteSettings } from '../hooks/useSiteContent';
 
-const sections = [
+const REFUND_ICONS = [FiXCircle, FiRotateCcw, FiAlertCircle, FiPackage, FiCheckCircle, FiMail];
+
+const DEFAULT_SECTIONS = [
   {
     icon: FiXCircle,
     title: 'Cancellation Policy',
     content: [
-      'Orders can be cancelled anytime before they are dispatched.',
-      'To cancel an order, please contact us immediately at joblessartist99@gmail.com or call +91 82185 85651.',
-      'Once the order has been dispatched, it cannot be cancelled. You may request a return instead (subject to our return policy below).',
-      'If the cancellation is approved, the refund will be processed to your original payment method.',
-    ],
-  },
-  {
-    icon: FiRotateCcw,
-    title: 'Return Policy',
-    content: [
-      'We accept returns within 7 days from the date of delivery.',
-      'Returns are only accepted if the item has arrived with physical damage (e.g., broken frame, torn canvas, damaged artwork).',
-      'This return policy applies equally to all products, including custom and made-to-order items.',
-      'Items must be returned in their original packaging to be eligible for a return.',
+      'Cancellations will be considered only if the request is made immediately after placing the order. However, the cancellation request may not be entertained if the orders have been communicated to the vendors/merchants and they have initiated the process of shipping them.',
+      'CHETNA PALARIYA does not accept cancellation requests for perishable items like flowers, eatables etc. However, refund/replacement can be made if the customer establishes that the quality of product delivered is not good.',
     ],
   },
   {
     icon: FiAlertCircle,
-    title: 'Conditions for Return',
+    title: 'Damaged or Defective Items',
     content: [
-      'The product must have physical damage that occurred during transit.',
-      'You must provide photographs of the damaged product as proof at the time of raising a return request.',
-      'The return request must be raised within 7 days of receiving the product.',
-      'Products that have been used, altered, or damaged by the customer after delivery are not eligible for return.',
-    ],
-  },
-  {
-    icon: FiPackage,
-    title: 'Return Process',
-    content: [
-      'Contact us at joblessartist99@gmail.com or call +91 82185 85651 with your order details and photos of the damage.',
-      'Our team will review your request and confirm eligibility within 2\u20133 business days.',
-      'If approved, we will arrange for the return pickup or provide instructions for shipping the product back to us.',
-      'Please ensure the item is packed securely to avoid further damage during the return transit.',
+      'In case of receipt of damaged or defective items please report the same to our Customer Service team. The request will, however, be entertained once the merchant has checked and determined the same at his own end. This should be reported within 7 Days days of receipt of the products.',
+      'In case you feel that the product received is not as shown on the site or as per your expectations, you must bring it to the notice of our customer service within 7 Days days of receiving the product. The Customer Service Team after looking into your complaint will take an appropriate decision.',
     ],
   },
   {
     icon: FiCheckCircle,
-    title: 'Refund Policy',
+    title: 'Refund Processing',
     content: [
-      'Refunds are initiated only after the returned product has been received and inspected by our team.',
-      'Once the product is received, we will personally discuss the resolution with you \u2014 whether it is a full refund, replacement, or store credit.',
-      'The refund method and timeline will be decided mutually during this discussion.',
-      'For cancelled orders (before dispatch), refunds will be processed to the original payment method within 5\u20137 business days.',
-    ],
-  },
-  {
-    icon: FiMail,
-    title: 'Contact for Returns & Refunds',
-    content: [
-      'Email: joblessartist99@gmail.com',
-      'Phone: +91 82185 85651',
-      'Address: Issainagar Phase 2, Jaipur Padli, Lamachaur, Haldwani, Nainital 263139',
-      'We aim to respond to all return and refund queries within 24 hours.',
+      'In case of complaints regarding products that come with a warranty from manufacturers, please refer the issue to them.',
+      'In case of any Refunds approved by the CHETNA PALARIYA, it\u2019ll take 9-15 Days days for the refund to be processed to the end customer.',
     ],
   },
 ];
 
+const DEFAULT_POLICY = {
+  pageTitle: 'Cancellation & Refund Policy',
+  lastUpdated: '17-05-2026 14:52:02',
+  sections: DEFAULT_SECTIONS.map(({ title, content }) => ({ title, content })),
+};
+
 const RefundPolicy = () => {
+  const { content } = usePageContent('refundPolicy', DEFAULT_POLICY);
+  const { data: settings } = useSiteSettings();
+  const contactEmail = settings?.contact?.email || 'joblessartist99@gmail.com';
+  const contactPhone = settings?.contact?.phone || '+91 82185 85651';
+  const contactAddress = settings?.contact?.address || 'Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139';
+  const sections = (content?.sections || DEFAULT_POLICY.sections).map((s, i) => ({
+    ...s,
+    icon: REFUND_ICONS[i] || FiXCircle,
+    content: s.content.map((item) =>
+      item
+        .replace('joblessartist99@gmail.com', contactEmail)
+        .replace('+91 82185 85651', contactPhone)
+        .replace('Jaipur Padli Phase 2, Near primary school Issainagar, Lamachaur, Haldwani, Haldwani, Uttarakhand, PIN: 263139', contactAddress)
+    ),
+  }));
+
   return (
     <AnimatedPage>
-      <SEO title="Refund & Cancellation Policy" description="Understand our cancellation, return, and refund policies for handcrafted art purchases." path="/refund-policy" />
+      <SEO title="Cancellation & Refund Policy" description="Understand our cancellation, return, and refund policies for handcrafted art purchases." path="/refund-policy" />
       <div style={{ background: '#FAF7F2' }}>
         {/* Hero */}
         <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 px-4 overflow-hidden">
@@ -99,16 +88,25 @@ const RefundPolicy = () => {
               className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
               style={{ fontFamily: "'Playfair Display', serif", color: '#2C2C2C' }}
             >
-              Refunds & Cancellation Policy
+              {content?.pageTitle || 'Cancellation & Refund Policy'}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="text-sm max-w-xl mx-auto"
+              style={{ fontFamily: "'DM Sans', sans-serif", color: '#9CA3AF' }}
+            >
+              Last updated: {content?.lastUpdated || '17-05-2026 14:52:02'}
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-base md:text-lg max-w-xl mx-auto leading-relaxed"
+              className="text-base md:text-lg max-w-xl mx-auto leading-relaxed mt-4"
               style={{ fontFamily: "'DM Sans', sans-serif", color: '#5A5A5A' }}
             >
-              Your satisfaction matters to us. Here is everything you need to know about returns, refunds, and cancellations.
+              CHETNA PALARIYA believes in helping its customers as far as possible, and has therefore a liberal cancellation policy. Under this policy:
             </motion.p>
           </div>
         </section>

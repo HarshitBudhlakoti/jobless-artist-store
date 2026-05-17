@@ -175,7 +175,7 @@ export default function TestimonialsManager() {
 
   const fetchTestimonials = async () => {
     try {
-      const res = await api.get('/testimonials', { all: true });
+      const res = await api.get('/testimonials', { params: { all: true } });
       if (res.data?.success) setTestimonials(res.data.data);
     } catch {
       toast.error('Failed to load testimonials');

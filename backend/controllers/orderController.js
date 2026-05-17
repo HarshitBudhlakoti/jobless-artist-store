@@ -3,6 +3,9 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const sendEmail = require('../utils/sendEmail');
 const emailTemplates = require('../utils/emailTemplates');
+
+const getClientUrl = () =>
+  (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
 const {
   calcIndiaPostCost,
   INDIA_POST_FLAT_RATE,
@@ -258,7 +261,7 @@ const getAllOrders = async (req, res, next) => {
 // @access  Admin
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const { orderStatus, paymentStatus, trackingNumber } = req.body;
+    const { orderStatus, paymentStatus, trackingNumber, notes } = req.body;
 
     const order = await Order.findById(req.params.id);
 
@@ -278,6 +281,9 @@ const updateOrderStatus = async (req, res, next) => {
     if (trackingNumber) {
       order.trackingNumber = trackingNumber;
     }
+    if (notes !== undefined) {
+      order.notes = notes;
+    }
 
     await order.save();
 
@@ -286,7 +292,7 @@ const updateOrderStatus = async (req, res, next) => {
       .populate('items.product', 'title images price');
 
     // Fire-and-forget status change emails
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = getClientUrl();
     try {
       const userEmail = updatedOrder.user?.email;
       const userName = updatedOrder.user?.name || 'Customer';

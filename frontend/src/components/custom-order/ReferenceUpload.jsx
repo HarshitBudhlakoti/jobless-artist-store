@@ -45,7 +45,7 @@ const ReferenceUpload = ({ referenceImages, onChange }) => {
 
         try {
           const formData = new FormData();
-          formData.append('image', file);
+          formData.append('images', file);
 
           const { data } = await api.post('/upload/images', formData, {
             headers: { 'Content-Type': undefined },

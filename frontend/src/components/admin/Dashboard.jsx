@@ -114,14 +114,14 @@ export default function Dashboard() {
 
       // Try to fetch users count
       try {
-        const usersRes = await api.get('/auth/admin/users', { params: { limit: 1 } });
+        const usersRes = await api.get('/admin/users', { params: { limit: 1 } });
         const totalUsers = usersRes.data?.pagination?.total || usersRes.data?.data?.length || 0;
         setStats((prev) => ({ ...prev, totalUsers }));
       } catch {
         // Users endpoint may not exist yet
       }
     } catch (err) {
-      console.error('Dashboard fetch error:', err);
+      if (import.meta.env.DEV) console.error('Dashboard fetch error:', err);
       setRevenueData([]);
     } finally {
       setLoading(false);

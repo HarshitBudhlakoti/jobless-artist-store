@@ -46,6 +46,7 @@ function OrderDetailPanel({ isOpen, onClose, order, onSave }) {
         orderStatus,
         paymentStatus,
         trackingNumber: trackingNumber || undefined,
+        notes,
       });
       toast.success('Order updated successfully');
       onSave();
