@@ -84,7 +84,8 @@ const Checkout = () => {
           cartSubtotal: cartTotal,
         });
         setShippingRates(data.data);
-      } catch {
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to fetch shipping rates');
         setShippingRates(null);
       } finally {
         setShippingLoading(false);
@@ -192,7 +193,7 @@ const Checkout = () => {
         toast.error('Payment was not completed.');
       }
     } catch (err) {
-      const message = err.data?.message || err.message || 'Payment failed. Please try again.';
+      const message = err.response?.data?.message || err.message || 'Payment failed. Please try again.';
       setSubmitError(message);
       toast.error(message);
     } finally {

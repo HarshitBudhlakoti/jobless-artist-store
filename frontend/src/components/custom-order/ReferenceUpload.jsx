@@ -62,7 +62,7 @@ const ReferenceUpload = ({ referenceImages, onChange }) => {
           const url = data.url || data.imageUrl || data.data?.url || '';
           onChange([...referenceImages, url]);
         } catch (err) {
-          setError(`Failed to upload ${file.name}. Please try again.`);
+          setError(err.response?.data?.message || `Failed to upload ${file.name}. Please try again.`);
         } finally {
           setUploading((prev) => {
             const copy = { ...prev };

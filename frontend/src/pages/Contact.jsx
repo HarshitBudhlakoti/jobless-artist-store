@@ -361,7 +361,7 @@ const Contact = () => {
       /* Auto-dismiss success message after 5 seconds */
       setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
-      setErrors({ form: err.data?.message || err.message || 'Failed to send message. Please try again.' });
+      setErrors({ form: err.response?.data?.message || err.message || 'Failed to send message. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }

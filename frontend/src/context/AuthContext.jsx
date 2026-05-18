@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
       toast.success('Welcome back!');
       return { success: true, user: userData };
     } catch (error) {
-      const msg = error.message || 'Login failed';
+      const msg = error.response?.data?.message || error.message || 'Login failed';
       toast.error(msg);
       return { success: false, message: msg };
     }
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
       toast.success('Account created successfully!');
       return { success: true, user: userData };
     } catch (error) {
-      const msg = error.message || 'Registration failed';
+      const msg = error.response?.data?.message || error.message || 'Registration failed';
       toast.error(msg);
       return { success: false, message: msg };
     }
@@ -98,7 +98,7 @@ export function AuthProvider({ children }) {
       toast.success('Profile updated successfully!');
       return { success: true, user: userData };
     } catch (error) {
-      const msg = error.message || 'Profile update failed';
+      const msg = error.response?.data?.message || error.message || 'Profile update failed';
       toast.error(msg);
       return { success: false, message: msg };
     }
@@ -110,7 +110,7 @@ export function AuthProvider({ children }) {
       toast.success('Password changed successfully!');
       return { success: true };
     } catch (error) {
-      const msg = error.message || 'Password change failed';
+      const msg = error.response?.data?.message || error.message || 'Password change failed';
       toast.error(msg);
       return { success: false, message: msg };
     }
@@ -125,7 +125,7 @@ export function AuthProvider({ children }) {
       setWishlist(updatedWishlist);
       return { success: true, wishlist: updatedWishlist };
     } catch (error) {
-      const msg = error.message || 'Failed to update wishlist';
+      const msg = error.response?.data?.message || error.message || 'Failed to update wishlist';
       toast.error(msg);
       return { success: false, message: msg };
     }
